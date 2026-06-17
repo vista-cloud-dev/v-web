@@ -42,14 +42,34 @@ Required Builds, envCheck VWEBENV).
 **Design:** D1 = single-process serial (jobbed concurrency deferred); HTTP-first,
 TLS-gap-loud (`,U-VWEB-NOTLS,`); zero direct VistA calls (all via VSL*).
 
+## M6.3 repin — MSL v0.12.0 → v0.12.1 (2026-06-17)
+
+**Branch `repin-msl-v0.12.1`.** Bumped `dist/msl-seam-pin.json` `msl_ref`
+`v0.12.0`→`v0.12.1`; `make pin` re-synced — **seams block byte-identical** (the
+CRLF fix carries no `@seam STDNET` change). `check-msl-pin` green @ v0.12.1.
+
+Effect: the v0.12.1 CRLF fix made `$$rawByteSafe()` pass on IRIS, so the
+**server-side** serve tests (`tServeKeepAlive`, `tConnectionCloseEndsIt`,
+`tAcceptOneServes`) now **run GREEN on IRIS** — but the repin **unmasked a SECOND
+STDNET IRIS gap**: a `$$read^STDNET` on a **peer-closed** socket KILLS the IRIS
+job (uncatchable disconnect), which the client read-BACK in
+`tServeHealthOverSocket` triggers. Since that can't be runtime-probed, added a
+static `readbackSafe()` gate (`$$rawByteSafe()` AND `'$zversion["IRIS"`) guarding
+only that one test. Result: **YDB 30/30, IRIS 27/27** (was 26/26), no more 0/0
+abort. See `docs/memory/stdnet-iris-crlf-rawread-gap.md` (GAP 1 ✅ / GAP 2 ⛔).
+
 ## Owed / next
 
-- ⛔ **`stdnet-iris-crlf-rawread-gap`** — `$$read^STDNET` (IRIS `readIris`) strips
-  CRLF → breaks HTTP framing → IRIS serve returns 400. **An m-stdlib STDNET
-  increment** (not v-web). When fixed, v-web's `$$rawByteSafe()` probe auto-heals
-  the soft-skipped IRIS serve tests. See `docs/memory/stdnet-iris-crlf-rawread-gap.md`.
-- 📤 **Repo + push** — `gh repo create vista-cloud-dev/v-web` (user action);
-  branch `m6.3-vweb-listener` committed locally, push owed.
+- ✅ **`stdnet-iris-crlf-rawread-gap` GAP 1 (CRLF) RESOLVED** — fixed in MSL
+  v0.12.1 (PR #18); v-web repinned (above); server-side IRIS serve now green.
+- ⛔ **`stdnet-iris-crlf-rawread-gap` GAP 2 (peer-closed read)** — `$$read^STDNET`
+  on a peer-closed socket kills the IRIS job (vs drain+EOF). **An m-stdlib STDNET
+  increment** (not v-web). When fixed + MSL re-tagged, drop the `'$zversion["IRIS"`
+  arm of `readbackSafe()` and bump the pin → IRIS read-back goes green. See
+  `docs/memory/stdnet-iris-crlf-rawread-gap.md` for the fix sketch.
+- ✅ **Repo + push DONE** — github.com/vista-cloud-dev/v-web is live (public,
+  default `main`); `main` + `m6.3-vweb-listener` pushed; `repin-msl-v0.12.1`
+  pushed with this increment.
 - 🔬 **Live observation** of TaskMan launch / XPAR reads / TLS on vehu/foia
   (bound + asserted; live run owed, the VSLTASK M5 posture).
 - ➡️ **M6.4** — FHIR `/Patient` handler on this transport.

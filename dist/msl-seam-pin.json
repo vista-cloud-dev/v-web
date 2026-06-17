@@ -1,5 +1,5 @@
 {
-  "msl_ref": "v0.12.0",
+  "msl_ref": "v0.12.1",
   "seams": {
     "STDENV": {
       "contract_version": 1,
