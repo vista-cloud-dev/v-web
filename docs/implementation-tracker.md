@@ -13,9 +13,51 @@ the `docs` repo `docs/vsl-msl/vsl-implementation-plan.md` +
 | M6.1 | `STDHTTPMSG` codec (m-stdlib) | 🟢 DONE (MSL v0.10.0) |
 | M6.2 | `STDHTTPD` framework (m-stdlib) | 🟢 DONE (MSL v0.11.0) |
 | **M6.3** | **`v-web` skeleton + `VWEBIO`/`VWEBL` listener** | **🟢 DONE 2026-06-17** |
-| M6.4 | `VWEBR` router + FHIR `/Patient` handler (VSLFS) | ⬜ next |
-| M6.5 | `VWEBA` auth (bearer/introspection → DUZ/#200) | ⬜ |
+| **M6.4** | **`VWEBR` router + FHIR `/Patient/:id` handler (VSLFS)** | **🟢 DONE 2026-06-17** |
+| M6.5 | `VWEBA` auth (bearer/introspection → DUZ/#200) | ⬜ next |
 | M6.6 | the §9 smoke test (full vertical, both engines, KIDS install→back-out) | ⬜ |
+
+## M6.4 — DONE (2026-06-17)
+
+**Branch `m6.4-fhir-patient`** (off `main`). The first real route mounts on the
+M6.3 transport. New **`VWEBR`** + suite **`VWEBRTST`**; `VWEBL` refactored. Still
+MSL **v0.12.2**.
+
+Shipped:
+- **`routes^VWEBR(.SRV)`** — the route table, now VWEBR-owned (STDHTTPD §6 Q3).
+  `GET /healthz` → `health^VWEBL` (kept) + `GET /Patient/:id` → `getPatient^VWEBR`.
+  `healthRoutes^VWEBL` **removed**; `VWEBL.run` + VWEBLTST setups call
+  `routes^VWEBR`. Route-table *store* (spec **D3**) stays code-built — **D3 owed**.
+- **`getPatient^VWEBR(.REQ,.RSP)`** — STDHTTPD handler. DFN from
+  `REQ("param","id")`: **non-numeric → 400**, **absent → 404** (both FHIR
+  `OperationOutcome`), else **200** + minimal FHIR R4 `Patient`. Auth-agnostic
+  (M6.5). #2 read via **VSLFS** (`$$exists`/`$$get` — `.01`/`.02`/`.03`), **no
+  direct `^DPT`** → ICR registry stays empty. JSON via the **`RSP("json")`
+  STDJSON seam** (serializeRsp encodes + adds Content-Type; handles the M6.1 IRIS
+  subscripted-by-ref gotcha). FHIR mapping: id←DFN; identifier←DFN as **MRN**
+  (type `MR`, `urn:vista:dfn`); name←#.01; gender←#.02 (MALE/FEMALE→male/female);
+  birthDate←#.03 via `$$fmToIso` (FileMan external "JAN 01, 1950" → `YYYY-MM-DD`,
+  partial→`YYYY`/`YYYY-MM`). **MRN=DFN** grounded in vdocs (ICN direct-access
+  forbidden, SSN=PII).
+- **KIDS** `VWEB*1.0*2`: added `VWEBR` (5 routines); `dist/kids/VWEB.kids` +
+  `dist/namespace-registry.json` regenerated.
+
+**Verification (driver stack only):**
+- bare YDB (m-test-engine, --chset m) + bare IRIS (m-test-iris): **38/38 each**
+  (VWEBRTST 26 + VWEBLTST 12) — routing, 400 (dispatch + real socket), and pure
+  FHIR-mapping unit tests (splitName/gender/fmToIso) run with no FileMan.
+- **vehu** (YDB-VistA, --chset m): VWEBRTST **35/35** — a real #2 read → 200 FHIR
+  Patient via `$$dispatch` AND over a real socket; plus 404.
+- **foia-t12** (IRIS-VistA, --namespace VISTA): VWEBRTST **27/27** — 404 live;
+  the 200 + socket-200 soft-skip on its **empty #2** (`$order(^DPT(0))=""`, a
+  scrubbed FOIA build); mapping units green.
+- `make check` exit 0 (bare YDB): fmt / lint 0 / arch layer-v / 7 drift gates
+  (icr **0**, namespaces **5**, msl-pin v0.12.2, check-kids ✓) / suite 56/56.
+
+**Coverage posture:** not in `make check` (separate target; CI engine-free). The
+`getPatient` FileMan body is a **documented exception** (live-only; the coverage
+monitor doesn't collect over the docker transport — vehu reports 0.0%) — proven
+by the live vehu suite, like VWEBL's infra-gated `run`/`launch`.
 
 ## M6.3 — DONE (2026-06-17)
 

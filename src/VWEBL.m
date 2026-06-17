@@ -20,8 +20,10 @@ VWEBL	; v-web — inbound listener launcher + accept-loop + worker handoff (§4)
 	;   run()                       — the listener body (the scheduled task)
 	;   $$serveConn(.SRV,conn,.opts)— run one connection's exchange, then close it
 	;   $$acceptOne(srv,.SRV,.opts,tmo) — accept + serve one connection
-	;   healthRoutes(.SRV)          — the M6.3 route table (GET /healthz only)
-	;   health(.REQ,.RSP)           — the /healthz handler
+	;   health(.REQ,.RSP)           — the /healthz handler (route owned by VWEBR)
+	;
+	; The route table is built by routes^VWEBR (M6.4) — GET /healthz (this
+	; handler) + GET /Patient/:id. run() sources SRV from there.
 	;
 	quit
 	;
@@ -36,7 +38,7 @@ run()	; The listener body (runs as the TaskMan task): open the socket on the
 	; configured port and enter the serial accept-loop until $$stop^VSLTASK.
 	new port,srv,SRV,opts,n
 	set port=$$port^VWEBCFG()
-	do healthRoutes(.SRV)
+	do routes^VWEBR(.SRV)
 	set srv=$$listen^VWEBIO(port)
 	if srv'>0 do raise("U-VWEB-LISTEN","run: could not open a listening socket on port "_port) quit
 	set opts("idletimeout")=$$idleTimeout^VWEBCFG()
@@ -82,12 +84,6 @@ serveConn(SRV,conn,opts)	; Run one connection's full HTTP exchange over a VWEBIO
 	set n=$$serve^STDHTTPD(.SRV,.TR,conn,.opts)
 	set ok=$$close^VWEBIO(conn)
 	quit n
-	;
-healthRoutes(SRV)	; Register the M6.3 route table: GET /healthz only. FileMan
-	; routes are M6.4; auth is M6.5 — the table stays health-only here.
-	; doc: @param SRV  array  by-ref route table (populated by side-effect)
-	do route^STDHTTPD(.SRV,"GET","/healthz","health^VWEBL")
-	quit
 	;
 health(REQ,RSP)	; GET /healthz handler — a liveness probe (200 "ok").
 	; doc: @param REQ  array  by-ref parsed request

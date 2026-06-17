@@ -53,7 +53,7 @@ tServeHealthOverSocket(pass,fail)	;@TEST "a real GET /healthz over a socket is s
 	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"sockets unavailable or raw CRLF not preserved here - serve skipped (regression guard; CRLF fixed on IRIS @ MSL v0.12.1)") quit
 	set cr=$char(13,10)
 	set req="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
-	do healthRoutes^VWEBL(.SRV)
+	do routes^VWEBR(.SRV)
 	set srv=$$listen^VWEBIO(0),port=$$boundport^VWEBIO(srv)
 	set cli=$$connect^STDNET("127.0.0.1",port,5)
 	do true^STDASSERT(.pass,.fail,$$write^STDNET(cli,req),"client wrote the request")
@@ -74,7 +74,7 @@ tServeKeepAlive(pass,fail)	;@TEST "keep-alive: serveConn loops multiple pipeline
 	set cr=$char(13,10)
 	set req1="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_cr
 	set req2="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
-	do healthRoutes^VWEBL(.SRV)
+	do routes^VWEBR(.SRV)
 	set srv=$$listen^VWEBIO(0),port=$$boundport^VWEBIO(srv)
 	set cli=$$connect^STDNET("127.0.0.1",port,5)
 	do true^STDASSERT(.pass,.fail,$$write^STDNET(cli,req1_req2),"client pipelined two requests")
@@ -90,7 +90,7 @@ tConnectionCloseEndsIt(pass,fail)	;@TEST "Connection: close ends the connection 
 	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"sockets unavailable or raw CRLF not preserved here - serve skipped (regression guard; CRLF fixed on IRIS @ MSL v0.12.1)") quit
 	set cr=$char(13,10)
 	set req="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
-	do healthRoutes^VWEBL(.SRV)
+	do routes^VWEBR(.SRV)
 	set srv=$$listen^VWEBIO(0),port=$$boundport^VWEBIO(srv)
 	set cli=$$connect^STDNET("127.0.0.1",port,5)
 	set n=$$write^STDNET(cli,req)
@@ -105,7 +105,7 @@ tAcceptOneServes(pass,fail)	;@TEST "acceptOne() accepts a pending connection and
 	if '$$available^STDNET() do true^STDASSERT(.pass,.fail,1,"sockets not wired here - skipped") quit
 	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"sockets unavailable or raw CRLF not preserved here - serve skipped (regression guard; CRLF fixed on IRIS @ MSL v0.12.1)") quit
 	set cr=$char(13,10),req="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
-	do healthRoutes^VWEBL(.SRV)
+	do routes^VWEBR(.SRV)
 	set srv=$$listen^VWEBIO(0),port=$$boundport^VWEBIO(srv)
 	set cli=$$connect^STDNET("127.0.0.1",port,5)
 	set n=$$write^STDNET(cli,req)
@@ -117,7 +117,7 @@ tAcceptOneServes(pass,fail)	;@TEST "acceptOne() accepts a pending connection and
 tAcceptOneTimeout(pass,fail)	;@TEST "acceptOne() returns 0 when no connection arrives within the timeout"
 	new srv,SRV,opts,n
 	if '$$available^STDNET() do true^STDASSERT(.pass,.fail,1,"sockets not wired here - skipped") quit
-	do healthRoutes^VWEBL(.SRV)
+	do routes^VWEBR(.SRV)
 	set srv=$$listen^VWEBIO(0)
 	set n=$$acceptOne^VWEBL(srv,.SRV,.opts,1)
 	do eq^STDASSERT(.pass,.fail,n,0,"no pending connection - acceptOne returns 0")

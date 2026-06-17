@@ -1,10 +1,10 @@
 {
   "package": "VWEB",
   "version": "1.0",
-  "patch": "1",
+  "patch": "2",
   "envCheck": "VWEBENV",
   "components": {
-    "routines": ["VWEBCFG", "VWEBENV", "VWEBIO", "VWEBL"],
+    "routines": ["VWEBCFG", "VWEBENV", "VWEBIO", "VWEBL", "VWEBR"],
     "options": ["VWEB LISTENER"],
     "parameterDefinitions": [
       {
