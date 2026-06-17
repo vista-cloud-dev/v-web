@@ -1,0 +1,535 @@
+{
+  "msl_ref": "v0.12.0",
+  "seams": {
+    "STDENV": {
+      "contract_version": 1,
+      "entry_points": [
+        {
+          "args": [
+            {
+              "doc": "by-ref env tree",
+              "name": "env",
+              "type": "array"
+            },
+            {
+              "doc": "env key",
+              "name": "key",
+              "type": "string"
+            },
+            {
+              "doc": "fallback when key is absent",
+              "name": "default",
+              "type": "string"
+            }
+          ],
+          "label": "$$get^STDENV(env, key, default)",
+          "raises": [],
+          "returns": {
+            "doc": "env(key) or default",
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "STDHTTPD": {
+      "contract_version": 1,
+      "entry_points": [
+        {
+          "args": [
+            {
+              "doc": "by-ref route table + middleware chain",
+              "name": "SRV",
+              "type": "array"
+            },
+            {
+              "doc": "by-ref parsed request (spec §5.1)",
+              "name": "REQ",
+              "type": "array"
+            },
+            {
+              "doc": "by-ref; populated with the response (spec §5.2)",
+              "name": "RSP",
+              "type": "array"
+            },
+            {
+              "doc": "by-ref; opts(\"logref\") = injected log hook ref do @ref(.EV); optional",
+              "name": "opts",
+              "type": "array"
+            }
+          ],
+          "label": "$$dispatch^STDHTTPD(SRV, REQ, RSP, opts)",
+          "raises": [],
+          "returns": {
+            "doc": "the final HTTP status (200 handler-ok / 404 / 405 / 401.. / 500)",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "by-ref route table populated by $$route",
+              "name": "SRV",
+              "type": "array"
+            },
+            {
+              "doc": "request verb",
+              "name": "method",
+              "type": "string"
+            },
+            {
+              "doc": "decoded request path (REQ(\"path\"))",
+              "name": "path",
+              "type": "string"
+            },
+            {
+              "doc": "by-ref; on 200 filled with method/pattern/handler/idx/opt; on 405 filled with allow",
+              "name": "route",
+              "type": "array"
+            },
+            {
+              "doc": "by-ref; on 200 filled with the captured :named segments (+ \"*\")",
+              "name": "params",
+              "type": "array"
+            }
+          ],
+          "label": "$$match^STDHTTPD(SRV, method, path, route, params)",
+          "raises": [],
+          "returns": {
+            "doc": "200 match; 404 no path matched; 405 path matched but method did not",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "by-ref route table + middleware chain",
+              "name": "SRV",
+              "type": "array"
+            },
+            {
+              "doc": "by-ref transport descriptor: TR(\"read\")/TR(\"write\") entry-refs",
+              "name": "TR",
+              "type": "array"
+            },
+            {
+              "doc": "opaque connection handle passed to the transport refs",
+              "name": "conn",
+              "type": "string"
+            },
+            {
+              "doc": "by-ref injected limits + logref (maxhdrbytes/maxbody/maxrequests/idletimeout/logref); optional",
+              "name": "opts",
+              "type": "array"
+            }
+          ],
+          "label": "$$serve^STDHTTPD(SRV, TR, conn, opts)",
+          "raises": [],
+          "returns": {
+            "doc": "the number of requests served on this connection",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "by-ref route table (caller-owned; VWEBR sources it from FileMan later)",
+              "name": "SRV",
+              "type": "array"
+            },
+            {
+              "doc": "HTTP verb, or \"*\" to match any verb",
+              "name": "method",
+              "type": "string"
+            },
+            {
+              "doc": "path pattern: literal + :named segments + optional trailing *",
+              "name": "pattern",
+              "type": "string"
+            },
+            {
+              "doc": "TAG^ROUTINE handler ref, invoked do @handler(.REQ,.RSP)",
+              "name": "handler",
+              "type": "string"
+            },
+            {
+              "doc": "by-ref per-route opts (e.g. auth/scope — consumed by middleware); optional",
+              "name": "opts",
+              "type": "array"
+            }
+          ],
+          "label": "do route^STDHTTPD(SRV, method, pattern, handler, opts)",
+          "raises": [],
+          "returns": {
+            "doc": "the new route's index",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "by-ref route table / server config",
+              "name": "SRV",
+              "type": "array"
+            },
+            {
+              "doc": "TAG^ROUTINE middleware ref, invoked do @mwref(.REQ,.RSP,.CTX)",
+              "name": "mwref",
+              "type": "string"
+            },
+            {
+              "doc": "by-ref per-middleware opts; optional",
+              "name": "opts",
+              "type": "array"
+            }
+          ],
+          "label": "do use^STDHTTPD(SRV, mwref, opts)",
+          "raises": [],
+          "returns": {
+            "doc": "the new middleware's index (its run order)",
+            "type": "numeric"
+          }
+        }
+      ]
+    },
+    "STDHTTPMSG": {
+      "contract_version": 1,
+      "entry_points": [
+        {
+          "args": [
+            {
+              "doc": "by-ref REQ or RSP carrying an \"hdr\" subtree",
+              "name": "MSG",
+              "type": "array"
+            },
+            {
+              "doc": "header name (any casing)",
+              "name": "name",
+              "type": "string"
+            }
+          ],
+          "label": "$$hdr^STDHTTPMSG(MSG, name)",
+          "raises": [],
+          "returns": {
+            "doc": "the header value, or \"\" if absent",
+            "type": "string"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "complete request bytes (request line + headers + body)",
+              "name": "buf",
+              "type": "string"
+            },
+            {
+              "doc": "by-ref; killed then populated per spec §5.1",
+              "name": "REQ",
+              "type": "array"
+            },
+            {
+              "doc": "by-ref size caps (maxline/maxhdrcount/maxhdrbytes/maxbody); optional",
+              "name": "opts",
+              "type": "array"
+            }
+          ],
+          "label": "$$parseReq^STDHTTPMSG(buf, REQ, opts)",
+          "raises": [],
+          "returns": {
+            "doc": "HTTP status: 200 ok; 400/413/414/431 on a bad request",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "complete response bytes (status line + headers + body)",
+              "name": "buf",
+              "type": "string"
+            },
+            {
+              "doc": "by-ref; killed then populated per spec §5.2",
+              "name": "RSP",
+              "type": "array"
+            },
+            {
+              "doc": "by-ref size caps (maxbody); optional",
+              "name": "opts",
+              "type": "array"
+            }
+          ],
+          "label": "$$parseRsp^STDHTTPMSG(buf, RSP, opts)",
+          "raises": [],
+          "returns": {
+            "doc": "HTTP status: 200 ok; 400/413 on a bad response",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "by-ref request per spec §5.1 (method/rawpath/rawquery/hdr/body)",
+              "name": "REQ",
+              "type": "array"
+            }
+          ],
+          "label": "$$serializeReq^STDHTTPMSG(REQ)",
+          "raises": [],
+          "returns": {
+            "doc": "full request bytes (request line + headers + CRLF + body)",
+            "type": "string"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "by-ref response per spec §5.2 (status/hdr/body/json)",
+              "name": "RSP",
+              "type": "array"
+            }
+          ],
+          "label": "$$serializeRsp^STDHTTPMSG(RSP)",
+          "raises": [],
+          "returns": {
+            "doc": "full response bytes (status line + headers + CRLF + body)",
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "STDKV": {
+      "contract_version": 1,
+      "entry_points": [
+        {
+          "args": [
+            {
+              "doc": "collection id",
+              "name": "coll",
+              "type": "string"
+            },
+            {
+              "doc": "record key",
+              "name": "key",
+              "type": "string"
+            }
+          ],
+          "label": "$$exists^STDKV(coll, key)",
+          "raises": [],
+          "returns": {
+            "doc": "1 iff the record exists; 0 otherwise",
+            "type": "bool"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "collection id",
+              "name": "coll",
+              "type": "string"
+            },
+            {
+              "doc": "record key",
+              "name": "key",
+              "type": "string"
+            },
+            {
+              "doc": "field id within the record",
+              "name": "field",
+              "type": "string"
+            },
+            {
+              "doc": "value returned when the field is unset",
+              "name": "default",
+              "type": "string"
+            }
+          ],
+          "label": "$$get^STDKV(coll, key, field, default)",
+          "raises": [],
+          "returns": {
+            "doc": "the stored value, or `default` when unset",
+            "type": "string"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "collection id",
+              "name": "coll",
+              "type": "string"
+            },
+            {
+              "doc": "record key",
+              "name": "key",
+              "type": "string"
+            }
+          ],
+          "label": "$$kill^STDKV(coll, key)",
+          "raises": [],
+          "returns": {
+            "doc": "1 (idempotent — absent record is a no-op)",
+            "type": "bool"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "collection id (VSLFS: a FileMan file number)",
+              "name": "coll",
+              "type": "string"
+            },
+            {
+              "doc": "record key (VSLFS: an IENS)",
+              "name": "key",
+              "type": "string"
+            },
+            {
+              "doc": "field id within the record (VSLFS: a field number)",
+              "name": "field",
+              "type": "string"
+            },
+            {
+              "doc": "the value to store (raw bytes; byte-faithful)",
+              "name": "value",
+              "type": "string"
+            }
+          ],
+          "label": "$$set^STDKV(coll, key, field, value)",
+          "raises": [],
+          "returns": {
+            "doc": "1 on success",
+            "type": "bool"
+          }
+        }
+      ]
+    },
+    "STDNET": {
+      "contract_version": 1,
+      "entry_points": [
+        {
+          "args": [
+            {
+              "doc": "a listener handle from $$listen",
+              "name": "id",
+              "type": "numeric"
+            },
+            {
+              "doc": "seconds to wait for a connection",
+              "name": "timeout",
+              "type": "numeric"
+            }
+          ],
+          "label": "$$accept^STDNET(id, timeout)",
+          "raises": [],
+          "returns": {
+            "doc": "a connected handle (>0), or 0 on timeout/failure",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "a handle from $$listen/$$accept/$$connect",
+              "name": "id",
+              "type": "numeric"
+            }
+          ],
+          "label": "$$close^STDNET(id)",
+          "raises": [],
+          "returns": {
+            "doc": "1 (idempotent)",
+            "type": "bool"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "host/IP to connect to",
+              "name": "host",
+              "type": "string"
+            },
+            {
+              "doc": "TCP port",
+              "name": "port",
+              "type": "numeric"
+            },
+            {
+              "doc": "seconds to wait for the connect",
+              "name": "timeout",
+              "type": "numeric"
+            }
+          ],
+          "label": "$$connect^STDNET(host, port, timeout)",
+          "raises": [],
+          "returns": {
+            "doc": "a connected handle (>0), or 0 on failure",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "TCP port to bind; 0 lets the OS choose",
+              "name": "port",
+              "type": "numeric"
+            }
+          ],
+          "label": "$$listen^STDNET(port)",
+          "raises": [],
+          "returns": {
+            "doc": "a listener handle (>0), or 0 on failure",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "a connected handle",
+              "name": "id",
+              "type": "numeric"
+            },
+            {
+              "doc": "maximum bytes to read",
+              "name": "maxlen",
+              "type": "numeric"
+            },
+            {
+              "doc": "seconds to wait for data",
+              "name": "timeout",
+              "type": "numeric"
+            },
+            {
+              "doc": "by-ref; receives the bytes read",
+              "name": "buf",
+              "type": "string"
+            }
+          ],
+          "label": "$$read^STDNET(id, maxlen, timeout, buf)",
+          "raises": [],
+          "returns": {
+            "doc": "bytes read (0 on timeout/EOF)",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "a connected handle",
+              "name": "id",
+              "type": "numeric"
+            },
+            {
+              "doc": "bytes to write (raw, no delimiter)",
+              "name": "buf",
+              "type": "string"
+            }
+          ],
+          "label": "$$write^STDNET(id, buf)",
+          "raises": [],
+          "returns": {
+            "doc": "1 on success; 0 on failure",
+            "type": "bool"
+          }
+        }
+      ]
+    }
+  }
+}

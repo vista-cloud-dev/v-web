@@ -1,0 +1,46 @@
+{
+  "package": "VWEB",
+  "version": "1.0",
+  "patch": "1",
+  "envCheck": "VWEBENV",
+  "components": {
+    "routines": ["VWEBCFG", "VWEBENV", "VWEBIO", "VWEBL"],
+    "options": ["VWEB LISTENER"],
+    "parameterDefinitions": [
+      {
+        "name": "VWEB LISTEN PORT",
+        "displayText": "VWEB inbound listener TCP port (read by VWEBL via $$port^VWEBCFG at SYS)",
+        "dataType": "numeric",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VWEB TLS SERVER CONFIG",
+        "displayText": "VWEB named server TLS config (operator-provisioned; empty = HTTP-first)",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VWEB IDLE TIMEOUT",
+        "displayText": "VWEB keep-alive idle seconds (read by VWEBL via $$idleTimeout^VWEBCFG)",
+        "dataType": "numeric",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VWEB MAX BODY",
+        "displayText": "VWEB maximum inbound request body bytes (read via $$maxBody^VWEBCFG)",
+        "dataType": "numeric",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VWEB MAX WORKERS",
+        "displayText": "VWEB concurrency cap (1 = serial, the v0.1 default; read via $$maxWorkers^VWEBCFG)",
+        "dataType": "numeric",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      }
+    ]
+  },
+  "requiredBuilds": [
+    { "name": "MSL*0.1*1", "action": "DON'T INSTALL, LEAVE GLOBAL" },
+    { "name": "VSL*1.0*2", "action": "DON'T INSTALL, LEAVE GLOBAL" }
+  ]
+}

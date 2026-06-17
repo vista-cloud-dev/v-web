@@ -1,0 +1,712 @@
+KIDS Distribution saved by v-pkg
+m-kids reassembled output
+**KIDS**:VWEB*1.0*1^
+
+**INSTALL NAME**
+VWEB*1.0*1
+"BLD",1,0)
+VWEB*1.0*1^VWEB^0^0
+"BLD",1,"KRN",0)
+^9.67PA^8989.51^1
+"BLD",1,"KRN",8989.51,0)
+8989.51
+"BLD",1,"KRN",8989.51,"NM",0)
+^9.68A^5^5
+"BLD",1,"KRN",8989.51,"NM",1,0)
+VWEB LISTEN PORT^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB LISTEN PORT",1)
+
+"BLD",1,"KRN",8989.51,"NM",2,0)
+VWEB TLS SERVER CONFIG^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB TLS SERVER CONFIG",2)
+
+"BLD",1,"KRN",8989.51,"NM",3,0)
+VWEB IDLE TIMEOUT^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB IDLE TIMEOUT",3)
+
+"BLD",1,"KRN",8989.51,"NM",4,0)
+VWEB MAX BODY^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB MAX BODY",4)
+
+"BLD",1,"KRN",8989.51,"NM",5,0)
+VWEB MAX WORKERS^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB MAX WORKERS",5)
+
+"BLD",1,"KRN","B",8989.51,8989.51)
+
+"BLD",1,"REQB",0)
+^9.611^2^2
+"BLD",1,"REQB",1,0)
+MSL*0.1*1^2
+"BLD",1,"REQB","B","MSL*0.1*1",1)
+
+"BLD",1,"REQB",2,0)
+VSL*1.0*2^2
+"BLD",1,"REQB","B","VSL*1.0*2",2)
+
+"RTN")
+4
+"RTN","VWEBCFG")
+0^58^0^0
+"RTN","VWEBCFG",1,0)
+VWEBCFG	; v-web — configuration accessor over XPAR (spec §11).
+"RTN","VWEBCFG",2,0)
+	;
+"RTN","VWEBCFG",3,0)
+	; All tunables are XPAR parameters under the package (SYS scope). Reads are
+"RTN","VWEBCFG",4,0)
+	; delegated to $$get^VSLCFG (v -> v) — VWEB makes NO direct ^XPAR call, so
+"RTN","VWEBCFG",5,0)
+	; the ICR registry stays empty and the no-direct-global gate is trivially
+"RTN","VWEBCFG",6,0)
+	; green. A missing parameter yields the documented default (VSLCFG's
+"RTN","VWEBCFG",7,0)
+	; contract). The listener (VWEBL) and the suites run these on a VistA
+"RTN","VWEBCFG",8,0)
+	; instance, where XPAR is present, and $text-guard the bare-engine path
+"RTN","VWEBCFG",9,0)
+	; (XPAR absent) above this seam — so VWEBCFG itself stays a clean delegation.
+"RTN","VWEBCFG",10,0)
+	; Live values are owed on vehu/foia.
+"RTN","VWEBCFG",11,0)
+	;
+"RTN","VWEBCFG",12,0)
+	; Public:
+"RTN","VWEBCFG",13,0)
+	;   $$port()         — VWEB LISTEN PORT      (default 8089)
+"RTN","VWEBCFG",14,0)
+	;   $$tlsConfig()    — VWEB TLS SERVER CONFIG (default "" — HTTP-first)
+"RTN","VWEBCFG",15,0)
+	;   $$idleTimeout()  — VWEB IDLE TIMEOUT      (default 30 s)
+"RTN","VWEBCFG",16,0)
+	;   $$maxBody()      — VWEB MAX BODY          (default 1048576 bytes)
+"RTN","VWEBCFG",17,0)
+	;   $$maxWorkers()   — VWEB MAX WORKERS       (default 1 — serial v0.1)
+"RTN","VWEBCFG",18,0)
+	;
+"RTN","VWEBCFG",19,0)
+	quit
+"RTN","VWEBCFG",20,0)
+	;
+"RTN","VWEBCFG",21,0)
+port()	; VWEB LISTEN PORT — the inbound port.
+"RTN","VWEBCFG",22,0)
+	; doc: @returns numeric  the configured listen port, or 8089
+"RTN","VWEBCFG",23,0)
+	quit $$getNum("VWEB LISTEN PORT",8089)
+"RTN","VWEBCFG",24,0)
+	;
+"RTN","VWEBCFG",25,0)
+tlsConfig()	; VWEB TLS SERVER CONFIG — the named server TLS config (§9).
+"RTN","VWEBCFG",26,0)
+	; doc: @returns string  the config name, or "" (HTTP-first)
+"RTN","VWEBCFG",27,0)
+	quit $$get("VWEB TLS SERVER CONFIG","")
+"RTN","VWEBCFG",28,0)
+	;
+"RTN","VWEBCFG",29,0)
+idleTimeout()	; VWEB IDLE TIMEOUT — keep-alive idle seconds.
+"RTN","VWEBCFG",30,0)
+	; doc: @returns numeric  the idle timeout in seconds, or 30
+"RTN","VWEBCFG",31,0)
+	quit $$getNum("VWEB IDLE TIMEOUT",30)
+"RTN","VWEBCFG",32,0)
+	;
+"RTN","VWEBCFG",33,0)
+maxBody()	; VWEB MAX BODY — max inbound body bytes.
+"RTN","VWEBCFG",34,0)
+	; doc: @returns numeric  the max body size in bytes, or 1048576
+"RTN","VWEBCFG",35,0)
+	quit $$getNum("VWEB MAX BODY",1048576)
+"RTN","VWEBCFG",36,0)
+	;
+"RTN","VWEBCFG",37,0)
+maxWorkers()	; VWEB MAX WORKERS — concurrency cap (1 = serial, the v0.1 default).
+"RTN","VWEBCFG",38,0)
+	; doc: @returns numeric  the worker cap, or 1
+"RTN","VWEBCFG",39,0)
+	quit $$getNum("VWEB MAX WORKERS",1)
+"RTN","VWEBCFG",40,0)
+	;
+"RTN","VWEBCFG",41,0)
+get(key,default)	; Read parameter `key` at SYS, else `default` — delegated to
+"RTN","VWEBCFG",42,0)
+	; VSLCFG (v -> v). VWEB makes no direct ^XPAR call (the binding + its ICR
+"RTN","VWEBCFG",43,0)
+	; live in VSLCFG, below). Runs on a VistA instance where XPAR is present;
+"RTN","VWEBCFG",44,0)
+	; the bare-engine path is the caller's concern (the listener body and the
+"RTN","VWEBCFG",45,0)
+	; tests guard with $text before reaching here).
+"RTN","VWEBCFG",46,0)
+	; doc: @param key      string  the XPAR parameter name
+"RTN","VWEBCFG",47,0)
+	; doc: @param default  string  value returned when the parameter is unset
+"RTN","VWEBCFG",48,0)
+	; doc: @returns        string  the SYS-level value, or `default`
+"RTN","VWEBCFG",49,0)
+	quit $$get^VSLCFG(key,$get(default))
+"RTN","VWEBCFG",50,0)
+	;
+"RTN","VWEBCFG",51,0)
+getNum(key,default)	; Numeric variant of $$get.
+"RTN","VWEBCFG",52,0)
+	; doc: @param key      string   the XPAR parameter name
+"RTN","VWEBCFG",53,0)
+	; doc: @param default  numeric  value returned when the parameter is unset
+"RTN","VWEBCFG",54,0)
+	; doc: @returns        numeric  the value as a number, or `default`
+"RTN","VWEBCFG",55,0)
+	new v
+"RTN","VWEBCFG",56,0)
+	set v=$$get(key,$get(default))
+"RTN","VWEBCFG",57,0)
+	quit:v="" +$get(default)
+"RTN","VWEBCFG",58,0)
+	quit +v
+"RTN","VWEBENV")
+0^28^0^0
+"RTN","VWEBENV",1,0)
+VWEBENV	; v-web — KIDS environment check (spec §14). Run by KIDS at load/install.
+"RTN","VWEBENV",2,0)
+	;
+"RTN","VWEBENV",3,0)
+	; Extends VSLENV's base facts (engine/version/kernel/tls) with VWEB's
+"RTN","VWEBENV",4,0)
+	; server-TLS-config presence. Self-contained at check time except for the
+"RTN","VWEBENV",5,0)
+	; RESIDENT VSL Required Build (VSLENV + VSLCFG install first, so they are
+"RTN","VWEBENV",6,0)
+	; resident when VWEB's check runs). All VistA access is delegated to those
+"RTN","VWEBENV",7,0)
+	; VSL* routines (v -> v) — VWEB makes NO direct Kernel/XPAR call, so the ICR
+"RTN","VWEBENV",8,0)
+	; registry stays empty and the waterline story is clean.
+"RTN","VWEBENV",9,0)
+	;
+"RTN","VWEBENV",10,0)
+	; HTTP-first: a missing server TLS config is RECORDED, never a hard abort —
+"RTN","VWEBENV",11,0)
+	; the listener serves plaintext until TLS is operator-provisioned (M2.T2).
+"RTN","VWEBENV",12,0)
+	; The VSL base check (VSLENV, run as the Required Build's own envCheck) is
+"RTN","VWEBENV",13,0)
+	; what aborts the install on a genuine showstopper (Kernel absent); VWEB adds
+"RTN","VWEBENV",14,0)
+	; only the TLS-config fact.
+"RTN","VWEBENV",15,0)
+	;
+"RTN","VWEBENV",16,0)
+	new facts
+"RTN","VWEBENV",17,0)
+	set facts=$$check(.facts)
+"RTN","VWEBENV",18,0)
+	quit
+"RTN","VWEBENV",19,0)
+	;
+"RTN","VWEBENV",20,0)
+check(facts)	; Fill `facts` with the VSLENV base facts + the VWEB TLS-config fact.
+"RTN","VWEBENV",21,0)
+	; doc: @param   facts  array  (by ref) engine/version/kernel/tls + vweb.tls*
+"RTN","VWEBENV",22,0)
+	; doc: @returns        bool   1
+"RTN","VWEBENV",23,0)
+	new x
+"RTN","VWEBENV",24,0)
+	set x=$$check^VSLENV(.facts)
+"RTN","VWEBENV",25,0)
+	set facts("vweb","tlsConfig")=$$get^VSLCFG("VWEB TLS SERVER CONFIG","")
+"RTN","VWEBENV",26,0)
+	set facts("vweb","tls")=$select($get(facts("vweb","tlsConfig"))'="":1,1:0)
+"RTN","VWEBENV",27,0)
+	if $quit quit 1
+"RTN","VWEBENV",28,0)
+	quit
+"RTN","VWEBIO")
+0^101^0^0
+"RTN","VWEBIO",1,0)
+VWEBIO	; v-web — engine device/TLS transport adapter (M6.3, spec §3/§9).
+"RTN","VWEBIO",2,0)
+	;
+"RTN","VWEBIO",3,0)
+	; The bridge from STDHTTPD's injected-transport contract down to STDNET +
+"RTN","VWEBIO",4,0)
+	; the engine socket layer. It owns four jobs, and nothing else (the m/v
+"RTN","VWEBIO",5,0)
+	; waterline keeps the codec, framework, and socket primitives in m-stdlib):
+"RTN","VWEBIO",6,0)
+	;
+"RTN","VWEBIO",7,0)
+	;   1. Build the transport descriptor STDHTTPD's $$serve consumes —
+"RTN","VWEBIO",8,0)
+	;      TR("read")/TR("write") entry-refs + the opaque `conn` handle.
+"RTN","VWEBIO",9,0)
+	;   2. Provide signature-compatible read/write wrappers over STDNET so the
+"RTN","VWEBIO",10,0)
+	;      framework reaches the wire through this seam (and, later, TLS) only.
+"RTN","VWEBIO",11,0)
+	;   3. Open / accept / close the listening socket over STDNET (dual-engine
+"RTN","VWEBIO",12,0)
+	;      since M2.T1).
+"RTN","VWEBIO",13,0)
+	;   4. Bind a NAMED server TLS config (spec §9) — HTTP-first, TLS-gap-loud:
+"RTN","VWEBIO",14,0)
+	;      no engine TLS plugin is wired yet (M2.T2 infra-blocked), so the TLS
+"RTN","VWEBIO",15,0)
+	;      path raises a clear ,U-VWEB-NOTLS, rather than silently serving
+"RTN","VWEBIO",16,0)
+	;      plaintext on the TLS port.
+"RTN","VWEBIO",17,0)
+	;
+"RTN","VWEBIO",18,0)
+	; Layer: v. Consumes m-stdlib STDNET only (v -> m, one-way).
+"RTN","VWEBIO",19,0)
+	;
+"RTN","VWEBIO",20,0)
+	; Public:
+"RTN","VWEBIO",21,0)
+	;   transport(.TR)              — fill TR with the read/write seam refs
+"RTN","VWEBIO",22,0)
+	;   $$read(conn,max,tmo,.buf)   — wrapper over $$read^STDNET (by-ref buf)
+"RTN","VWEBIO",23,0)
+	;   $$write(conn,bytes)         — wrapper over $$write^STDNET
+"RTN","VWEBIO",24,0)
+	;   $$listen(port)              — open a plaintext listening socket
+"RTN","VWEBIO",25,0)
+	;   $$boundport(id)             — the OS-assigned bound port
+"RTN","VWEBIO",26,0)
+	;   $$accept(id,tmo)            — accept one connection
+"RTN","VWEBIO",27,0)
+	;   $$close(id)                 — close a handle (idempotent)
+"RTN","VWEBIO",28,0)
+	;   $$listenTls(port,config)    — TLS listener (raises ,U-VWEB-NOTLS, today)
+"RTN","VWEBIO",29,0)
+	;   $$tlsAvailable()            — 1 iff a server TLS socket can be opened
+"RTN","VWEBIO",30,0)
+	;   $$lastError()               — detail behind the last raised error
+"RTN","VWEBIO",31,0)
+	;
+"RTN","VWEBIO",32,0)
+	quit
+"RTN","VWEBIO",33,0)
+	;
+"RTN","VWEBIO",34,0)
+transport(TR)	; Build the transport descriptor STDHTTPD's $$serve consumes.
+"RTN","VWEBIO",35,0)
+	; doc: @param TR  array  by-ref; receives TR("read")/TR("write") entry-refs
+"RTN","VWEBIO",36,0)
+	; The refs are invoked by $$serve via full-argument indirection as
+"RTN","VWEBIO",37,0)
+	;   $$@TR("read")(conn,max,tmo,.buf) / $$@TR("write")(conn,bytes)
+"RTN","VWEBIO",38,0)
+	; so the wrappers below MUST match $$read/$$write^STDNET signatures exactly.
+"RTN","VWEBIO",39,0)
+	set TR("read")="read^VWEBIO"
+"RTN","VWEBIO",40,0)
+	set TR("write")="write^VWEBIO"
+"RTN","VWEBIO",41,0)
+	quit
+"RTN","VWEBIO",42,0)
+	;
+"RTN","VWEBIO",43,0)
+read(conn,max,timeout,buf)	; Raw-read up to `max` bytes (signature-compatible with $$read^STDNET).
+"RTN","VWEBIO",44,0)
+	; doc: @param conn     numeric  a connected handle
+"RTN","VWEBIO",45,0)
+	; doc: @param max      numeric  maximum bytes to read
+"RTN","VWEBIO",46,0)
+	; doc: @param timeout  numeric  seconds to wait for data
+"RTN","VWEBIO",47,0)
+	; doc: @param buf      string   by-ref; receives the bytes read
+"RTN","VWEBIO",48,0)
+	; doc: @returns        numeric  bytes read (0 on timeout/EOF)
+"RTN","VWEBIO",49,0)
+	quit $$read^STDNET(conn,max,timeout,.buf)
+"RTN","VWEBIO",50,0)
+	;
+"RTN","VWEBIO",51,0)
+write(conn,bytes)	; Raw-write bytes (signature-compatible with $$write^STDNET).
+"RTN","VWEBIO",52,0)
+	; doc: @param conn   numeric  a connected handle
+"RTN","VWEBIO",53,0)
+	; doc: @param bytes  string   bytes to write (raw, no delimiter)
+"RTN","VWEBIO",54,0)
+	; doc: @returns      bool     1 on success; 0 on failure
+"RTN","VWEBIO",55,0)
+	quit $$write^STDNET(conn,bytes)
+"RTN","VWEBIO",56,0)
+	;
+"RTN","VWEBIO",57,0)
+listen(port)	; Open a plaintext listening socket on `port` (0 = OS-assigned).
+"RTN","VWEBIO",58,0)
+	; doc: @param port  numeric  TCP port to bind; 0 lets the OS choose
+"RTN","VWEBIO",59,0)
+	; doc: @returns     numeric  a listener handle (>0), or 0 on failure
+"RTN","VWEBIO",60,0)
+	quit $$listen^STDNET(port)
+"RTN","VWEBIO",61,0)
+	;
+"RTN","VWEBIO",62,0)
+boundport(id)	; The OS-assigned bound port of a listener handle.
+"RTN","VWEBIO",63,0)
+	; doc: @param id  numeric  a listener handle from $$listen
+"RTN","VWEBIO",64,0)
+	; doc: @returns   numeric  the bound TCP port
+"RTN","VWEBIO",65,0)
+	quit $$boundport^STDNET(id)
+"RTN","VWEBIO",66,0)
+	;
+"RTN","VWEBIO",67,0)
+accept(id,timeout)	; Accept one pending connection on a listener handle.
+"RTN","VWEBIO",68,0)
+	; doc: @param id       numeric  a listener handle from $$listen
+"RTN","VWEBIO",69,0)
+	; doc: @param timeout  numeric  seconds to wait for a connection
+"RTN","VWEBIO",70,0)
+	; doc: @returns        numeric  a connected handle (>0), or 0 on timeout
+"RTN","VWEBIO",71,0)
+	quit $$accept^STDNET(id,timeout)
+"RTN","VWEBIO",72,0)
+	;
+"RTN","VWEBIO",73,0)
+close(id)	; Close and free a handle (idempotent).
+"RTN","VWEBIO",74,0)
+	; doc: @param id  numeric  a handle from $$listen/$$accept
+"RTN","VWEBIO",75,0)
+	; doc: @returns   bool     1
+"RTN","VWEBIO",76,0)
+	quit $$close^STDNET(id)
+"RTN","VWEBIO",77,0)
+	;
+"RTN","VWEBIO",78,0)
+listenTls(port,config)	; Open a TLS listening socket bound to a NAMED server TLS config (§9).
+"RTN","VWEBIO",79,0)
+	; doc: @param port    numeric  the TLS port
+"RTN","VWEBIO",80,0)
+	; doc: @param config  string   the named server TLS config (from XPAR)
+"RTN","VWEBIO",81,0)
+	; doc: @returns       numeric  a listener handle (>0)
+"RTN","VWEBIO",82,0)
+	; doc: @raises U-VWEB-NOTLS  no engine TLS plugin / config is wired here
+"RTN","VWEBIO",83,0)
+	; HTTP-first, gap-loud: the operator-provisioned engine TLS plugin (IRIS
+"RTN","VWEBIO",84,0)
+	; SSL/TLS config or YDB ydb_crypt_config) is not wired yet (M2.T2). Raise
+"RTN","VWEBIO",85,0)
+	; loudly rather than serve plaintext on the TLS port; live TLS is an infra
+"RTN","VWEBIO",86,0)
+	; follow-up (same posture as VSLIO's $$connectTls).
+"RTN","VWEBIO",87,0)
+	do raise("U-VWEB-NOTLS",",U-VWEB-NOTLS, listenTls: TLS config '"_$get(config)_"' (port "_$get(port)_") requested but no engine TLS plugin is wired — HTTP-first (live TLS owed: M2.T2)")
+"RTN","VWEBIO",88,0)
+	quit 0
+"RTN","VWEBIO",89,0)
+	;
+"RTN","VWEBIO",90,0)
+tlsAvailable()	; 1 iff a server TLS socket can be opened here. Always 0 (the gap).
+"RTN","VWEBIO",91,0)
+	; doc: @returns bool  0 — no engine TLS plugin wired (a tracked gap, M2.T2)
+"RTN","VWEBIO",92,0)
+	quit 0
+"RTN","VWEBIO",93,0)
+	;
+"RTN","VWEBIO",94,0)
+raise(code,msg)	; (private) stash the detail, then raise the clean ,<code>, $ECODE.
+"RTN","VWEBIO",95,0)
+	set ^TMP($job,"vwebio","err")=msg
+"RTN","VWEBIO",96,0)
+	set $ecode=","_code_","
+"RTN","VWEBIO",97,0)
+	quit
+"RTN","VWEBIO",98,0)
+	;
+"RTN","VWEBIO",99,0)
+lastError()	; The detail stashed behind the last raised error (or "").
+"RTN","VWEBIO",100,0)
+	; doc: @returns string  the last error detail
+"RTN","VWEBIO",101,0)
+	quit $get(^TMP($job,"vwebio","err"))
+"RTN","VWEBL")
+0^106^0^0
+"RTN","VWEBL",1,0)
+VWEBL	; v-web — inbound listener launcher + accept-loop + worker handoff (§4).
+"RTN","VWEBL",2,0)
+	;
+"RTN","VWEBL",3,0)
+	; The process model (spec §4): a TaskMan-startable listener opens the
+"RTN","VWEBL",4,0)
+	; socket (port from XPAR), loops $$accept, and per connection runs the full
+"RTN","VWEBL",5,0)
+	; HTTP exchange via STDHTTPD's $$serve over a VWEBIO transport, then accepts
+"RTN","VWEBL",6,0)
+	; the next. STDHTTPD already owns the read loop, framing, parse, dispatch,
+"RTN","VWEBL",7,0)
+	; serialize, and keep-alive — VWEBL adds ONLY the socket open/accept, the
+"RTN","VWEBL",8,0)
+	; transport handoff, and the TaskMan launch (the m/v waterline).
+"RTN","VWEBL",9,0)
+	;
+"RTN","VWEBL",10,0)
+	; v0.1 is single-process SERIAL (accept -> serve -> close -> accept; no
+"RTN","VWEBL",11,0)
+	; JOB-off): the full vertical proven end-to-end on both engines first. The
+"RTN","VWEBL",12,0)
+	; jobbed-worker concurrency — the spec-D1 socket handoff, the one engine-
+"RTN","VWEBL",13,0)
+	; sensitive seam — is a separately-tested later layer behind a
+"RTN","VWEBL",14,0)
+	; $zversion["IRIS" fork, not a blocker on the vertical.
+"RTN","VWEBL",15,0)
+	;
+"RTN","VWEBL",16,0)
+	; Layer: v. Consumes STDHTTPD/STDNET (m) via VWEBIO + VSLTASK/VWEBCFG (v).
+"RTN","VWEBL",17,0)
+	;
+"RTN","VWEBL",18,0)
+	; Public:
+"RTN","VWEBL",19,0)
+	;   $$launch()                  — TaskMan entry: schedule the listener (VSLTASK)
+"RTN","VWEBL",20,0)
+	;   run()                       — the listener body (the scheduled task)
+"RTN","VWEBL",21,0)
+	;   $$serveConn(.SRV,conn,.opts)— run one connection's exchange, then close it
+"RTN","VWEBL",22,0)
+	;   $$acceptOne(srv,.SRV,.opts,tmo) — accept + serve one connection
+"RTN","VWEBL",23,0)
+	;   healthRoutes(.SRV)          — the M6.3 route table (GET /healthz only)
+"RTN","VWEBL",24,0)
+	;   health(.REQ,.RSP)           — the /healthz handler
+"RTN","VWEBL",25,0)
+	;
+"RTN","VWEBL",26,0)
+	quit
+"RTN","VWEBL",27,0)
+	;
+"RTN","VWEBL",28,0)
+launch()	; TaskMan entry: schedule the persistent listener via VSLTASK. The
+"RTN","VWEBL",29,0)
+	; Kernel startup OPTION points here; VSLTASK queues + marks it persistent.
+"RTN","VWEBL",30,0)
+	; doc: @returns numeric  the queued (persistent) TaskMan task number
+"RTN","VWEBL",31,0)
+	; The live restart observation is infra-gated (the VSLTASK M5 posture); the
+"RTN","VWEBL",32,0)
+	; bind is asserted.
+"RTN","VWEBL",33,0)
+	quit $$schedule^VSLTASK("run^VWEBL","VWEB inbound HTTP(S) listener","@")
+"RTN","VWEBL",34,0)
+	;
+"RTN","VWEBL",35,0)
+run()	; The listener body (runs as the TaskMan task): open the socket on the
+"RTN","VWEBL",36,0)
+	; configured port and enter the serial accept-loop until $$stop^VSLTASK.
+"RTN","VWEBL",37,0)
+	new port,srv,SRV,opts,n
+"RTN","VWEBL",38,0)
+	set port=$$port^VWEBCFG()
+"RTN","VWEBL",39,0)
+	do healthRoutes(.SRV)
+"RTN","VWEBL",40,0)
+	set srv=$$listen^VWEBIO(port)
+"RTN","VWEBL",41,0)
+	if srv'>0 do raise("U-VWEB-LISTEN","run: could not open a listening socket on port "_port) quit
+"RTN","VWEBL",42,0)
+	set opts("idletimeout")=$$idleTimeout^VWEBCFG()
+"RTN","VWEBL",43,0)
+	set opts("maxbody")=$$maxBody^VWEBCFG()
+"RTN","VWEBL",44,0)
+	set n=$$acceptLoop(srv,.SRV,.opts)
+"RTN","VWEBL",45,0)
+	set n=$$close^VWEBIO(srv)
+"RTN","VWEBL",46,0)
+	quit
+"RTN","VWEBL",47,0)
+	;
+"RTN","VWEBL",48,0)
+acceptLoop(srv,SRV,opts)	; Serial accept -> serve -> close loop until cooperative
+"RTN","VWEBL",49,0)
+	; stop. The idle timeout doubles as the accept poll interval so $$stop is
+"RTN","VWEBL",50,0)
+	; rechecked between connections. Live observation infra-gated (VSLTASK M5
+"RTN","VWEBL",51,0)
+	; posture); acceptOne is the asserted unit.
+"RTN","VWEBL",52,0)
+	; doc: @param srv   numeric  the listening handle
+"RTN","VWEBL",53,0)
+	; doc: @param SRV   array    by-ref route table
+"RTN","VWEBL",54,0)
+	; doc: @param opts  array    by-ref STDHTTPD limits
+"RTN","VWEBL",55,0)
+	; doc: @returns     numeric  connections served before stop
+"RTN","VWEBL",56,0)
+	new nconn,tmo
+"RTN","VWEBL",57,0)
+	set nconn=0,tmo=$$idleTimeout^VWEBCFG()
+"RTN","VWEBL",58,0)
+	for  quit:$$stop^VSLTASK()  set nconn=nconn+$$acceptOne(srv,.SRV,.opts,tmo)
+"RTN","VWEBL",59,0)
+	quit nconn
+"RTN","VWEBL",60,0)
+	;
+"RTN","VWEBL",61,0)
+acceptOne(srv,SRV,opts,tmo)	; Accept (<=tmo s) and serve one connection.
+"RTN","VWEBL",62,0)
+	; doc: @param srv   numeric  the listening handle
+"RTN","VWEBL",63,0)
+	; doc: @param SRV   array    by-ref route table
+"RTN","VWEBL",64,0)
+	; doc: @param opts  array    by-ref STDHTTPD limits
+"RTN","VWEBL",65,0)
+	; doc: @param tmo   numeric  accept timeout in seconds (default 30)
+"RTN","VWEBL",66,0)
+	; doc: @returns     numeric  1 if a connection was served, 0 on accept timeout
+"RTN","VWEBL",67,0)
+	new conn,n
+"RTN","VWEBL",68,0)
+	set conn=$$accept^VWEBIO(srv,$get(tmo,30))
+"RTN","VWEBL",69,0)
+	if conn'>0 quit 0
+"RTN","VWEBL",70,0)
+	set n=$$serveConn(.SRV,conn,.opts)
+"RTN","VWEBL",71,0)
+	quit 1
+"RTN","VWEBL",72,0)
+	;
+"RTN","VWEBL",73,0)
+serveConn(SRV,conn,opts)	; Run one connection's full HTTP exchange over a VWEBIO
+"RTN","VWEBL",74,0)
+	; transport via STDHTTPD's worker loop, then close the socket. This is the
+"RTN","VWEBL",75,0)
+	; socket -> STDHTTPD seam (spec D1) in its simplest, single-process form.
+"RTN","VWEBL",76,0)
+	; doc: @param SRV   array    by-ref route table
+"RTN","VWEBL",77,0)
+	; doc: @param conn  numeric  a connected socket handle (from $$accept)
+"RTN","VWEBL",78,0)
+	; doc: @param opts  array    by-ref STDHTTPD limits (optional)
+"RTN","VWEBL",79,0)
+	; doc: @returns     numeric  requests served on this connection (keep-alive)
+"RTN","VWEBL",80,0)
+	new TR,n,ok
+"RTN","VWEBL",81,0)
+	do transport^VWEBIO(.TR)
+"RTN","VWEBL",82,0)
+	set n=$$serve^STDHTTPD(.SRV,.TR,conn,.opts)
+"RTN","VWEBL",83,0)
+	set ok=$$close^VWEBIO(conn)
+"RTN","VWEBL",84,0)
+	quit n
+"RTN","VWEBL",85,0)
+	;
+"RTN","VWEBL",86,0)
+healthRoutes(SRV)	; Register the M6.3 route table: GET /healthz only. FileMan
+"RTN","VWEBL",87,0)
+	; routes are M6.4; auth is M6.5 — the table stays health-only here.
+"RTN","VWEBL",88,0)
+	; doc: @param SRV  array  by-ref route table (populated by side-effect)
+"RTN","VWEBL",89,0)
+	do route^STDHTTPD(.SRV,"GET","/healthz","health^VWEBL")
+"RTN","VWEBL",90,0)
+	quit
+"RTN","VWEBL",91,0)
+	;
+"RTN","VWEBL",92,0)
+health(REQ,RSP)	; GET /healthz handler — a liveness probe (200 "ok").
+"RTN","VWEBL",93,0)
+	; doc: @param REQ  array  by-ref parsed request
+"RTN","VWEBL",94,0)
+	; doc: @param RSP  array  by-ref response (populate status/body)
+"RTN","VWEBL",95,0)
+	set RSP("status")=200
+"RTN","VWEBL",96,0)
+	set RSP("body")="ok"
+"RTN","VWEBL",97,0)
+	quit
+"RTN","VWEBL",98,0)
+	;
+"RTN","VWEBL",99,0)
+raise(code,msg)	; (private) stash the detail, then raise the clean ,<code>, $ECODE.
+"RTN","VWEBL",100,0)
+	set ^TMP($job,"vwebl","err")=msg
+"RTN","VWEBL",101,0)
+	set $ecode=","_code_","
+"RTN","VWEBL",102,0)
+	quit
+"RTN","VWEBL",103,0)
+	;
+"RTN","VWEBL",104,0)
+lastError()	; The detail stashed behind the last raised error (or "").
+"RTN","VWEBL",105,0)
+	; doc: @returns string  the last error detail
+"RTN","VWEBL",106,0)
+	quit $get(^TMP($job,"vwebl","err"))
+"ORD",1,8989.51)
+8989.51;1;1;;;;;;;
+"ORD",1,8989.51,0)
+PARAMETER DEFINITION
+"KRN",8989.51,1,-1)
+0
+"KRN",8989.51,1,0)
+VWEB LISTEN PORT^VWEB inbound listener TCP port (read by VWEBL via $$port^VWEBCFG at SYS)^
+"KRN",8989.51,1,1)
+N^^
+"KRN",8989.51,1,30,0)
+^8989.513I^1^1
+"KRN",8989.51,1,30,1,0)
+1^4.2
+"KRN",8989.51,1,30,"B",1,1)
+
+"KRN",8989.51,2,-1)
+0
+"KRN",8989.51,2,0)
+VWEB TLS SERVER CONFIG^VWEB named server TLS config (operator-provisioned; empty = HTTP-first)^
+"KRN",8989.51,2,1)
+F^^
+"KRN",8989.51,2,30,0)
+^8989.513I^1^1
+"KRN",8989.51,2,30,1,0)
+1^4.2
+"KRN",8989.51,2,30,"B",1,1)
+
+"KRN",8989.51,3,-1)
+0
+"KRN",8989.51,3,0)
+VWEB IDLE TIMEOUT^VWEB keep-alive idle seconds (read by VWEBL via $$idleTimeout^VWEBCFG)^
+"KRN",8989.51,3,1)
+N^^
+"KRN",8989.51,3,30,0)
+^8989.513I^1^1
+"KRN",8989.51,3,30,1,0)
+1^4.2
+"KRN",8989.51,3,30,"B",1,1)
+
+"KRN",8989.51,4,-1)
+0
+"KRN",8989.51,4,0)
+VWEB MAX BODY^VWEB maximum inbound request body bytes (read via $$maxBody^VWEBCFG)^
+"KRN",8989.51,4,1)
+N^^
+"KRN",8989.51,4,30,0)
+^8989.513I^1^1
+"KRN",8989.51,4,30,1,0)
+1^4.2
+"KRN",8989.51,4,30,"B",1,1)
+
+"KRN",8989.51,5,-1)
+0
+"KRN",8989.51,5,0)
+VWEB MAX WORKERS^VWEB concurrency cap (1 = serial, the v0.1 default; read via $$maxWorkers^VWEBCFG)^
+"KRN",8989.51,5,1)
+N^^
+"KRN",8989.51,5,30,0)
+^8989.513I^1^1
+"KRN",8989.51,5,30,1,0)
+1^4.2
+"KRN",8989.51,5,30,"B",1,1)
+
+"MBREQ")
+2
+"VER")
+8.0^22.2
+**END**
+**END**

@@ -1,0 +1,13 @@
+# m-cli configuration — VistA Web Services (VWEB*), the inbound socket adapter
+# that drives STDHTTPD over a real socket. Modern (pythonic-lower) M, not
+# VistA-compact. Layer: v (VistA-coupled); dual-engine (YDB + IRIS).
+
+[lint]
+rules = "modern"
+target-engine = "any"
+
+[fmt]
+rules = "pythonic-lower"
+
+[lsp]
+"hover.format" = "markdown"

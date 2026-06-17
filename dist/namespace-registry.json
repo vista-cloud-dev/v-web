@@ -1,0 +1,19 @@
+{
+  "declared": {
+    "globals": [
+      "VWEB"
+    ],
+    "routines": [
+      "VWEB"
+    ]
+  },
+  "discovered": {
+    "globals": [],
+    "routines": [
+      "VWEBCFG",
+      "VWEBENV",
+      "VWEBIO",
+      "VWEBL"
+    ]
+  }
+}

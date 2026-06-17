@@ -1,0 +1,17 @@
+# YottaDB runtime artifacts
+.ydb/
+.objects/
+*.o
+
+# Built m / v-pkg binaries (live in their own repos; never committed here)
+/dist/m
+/dist/v-pkg
+
+# Test + coverage outputs
+test-results.tap
+*.lcov
+coverage.out
+
+# Python drift-gate generator caches (tools/*.py)
+__pycache__/
+*.pyc

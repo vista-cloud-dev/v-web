@@ -1,0 +1,14 @@
+{
+  "id": "tool:v-web",
+  "repo": "https://github.com/vista-cloud-dev/v-web",
+  "role": "VistA Web Services — VWEB* routines: the inbound socket adapter (listener + device/TLS adapter) that drives the m-stdlib STDHTTPD server framework over a real socket. VistA-specific; consumes the engine-neutral STD* HTTP/socket base and the VSL* VistA base upward.",
+  "language": ["m"],
+  "layer": "v",
+  "license": "AGPL-3.0",
+  "namespaces": {
+    "routines": ["VWEB"],
+    "globals": ["VWEB"]
+  },
+  "consumes": ["tool:m-stdlib", "tool:v-stdlib"],
+  "verification_commands": ["make check"]
+}

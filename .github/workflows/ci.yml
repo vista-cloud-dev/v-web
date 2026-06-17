@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # m/v waterline gate — v-web is layer v (passes G1 trivially: v -> m is
+  # allowed). The reusable org workflow runs `m arch check`.
+  arch:
+    uses: vista-cloud-dev/.github/.github/workflows/arch-waterline.yml@main
+
+  # The registry-driven drift gates + the cross-repo MSL seam-contract pin +
+  # the KIDS-build drift gate (engine-free, pure-Python). The engine-bound M
+  # suite (fmt/lint/test under YDB+IRIS) runs via m-ci.yml's engine-targets.
+  #   check-msl-pin SKIPs green in CI (sibling m-stdlib not checked out).
+  #   check-kids SKIPs green in CI (v-pkg binary not present).
+  ci:
+    uses: vista-cloud-dev/.github/.github/workflows/m-ci.yml@main
+    with:
+      engine-free-targets: "fmt-check lint check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids"
+      engine-targets: "test"
