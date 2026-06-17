@@ -58,18 +58,34 @@ static `readbackSafe()` gate (`$$rawByteSafe()` AND `'$zversion["IRIS"`) guardin
 only that one test. Result: **YDB 30/30, IRIS 27/27** (was 26/26), no more 0/0
 abort. See `docs/memory/stdnet-iris-crlf-rawread-gap.md` (GAP 1 ✅ / GAP 2 ⛔).
 
+## M6.3 repin — MSL v0.12.1 → v0.12.2 (2026-06-17) — IRIS read-back green
+
+**Branch `repin-msl-v0.12.2`.** GAP 2 is now fixed in m-stdlib (MSL **v0.12.2**:
+`readIris` drains-then-EOFs a peer-closed read under an ObjectScript try/catch;
+`STDNETTST` 22/22 dual-engine, no `@seam STDNET` change → patch). Bumped
+`dist/msl-seam-pin.json` `msl_ref` `v0.12.1`→`v0.12.2`; `make pin` re-synced —
+**seams block byte-identical** (only `msl_ref` moved). `check-msl-pin` green @
+v0.12.2.
+
+**Deleted the static `readbackSafe()` gate** in `tests/VWEBLTST.m` —
+`tServeHealthOverSocket` now guards on `$$rawByteSafe()` like the sibling serve
+tests (one fewer indirection); the now-false `'$zversion["IRIS"` skip and its
+stale doc/skip message are gone. Effect: the client read-BACK **RUNS on IRIS**
+(was a skip) and the 200 is read back byte-exact. Result: **YDB 30/30, IRIS
+30/30** (VWEBLTST **12/12 on both engines**), no 0/0 abort. **The M6.3 serve
+vertical is now fully dual-engine.** GAP 1 ✅ / GAP 2 ✅.
+
 ## Owed / next
 
 - ✅ **`stdnet-iris-crlf-rawread-gap` GAP 1 (CRLF) RESOLVED** — fixed in MSL
   v0.12.1 (PR #18); v-web repinned (above); server-side IRIS serve now green.
-- ⛔ **`stdnet-iris-crlf-rawread-gap` GAP 2 (peer-closed read)** — `$$read^STDNET`
-  on a peer-closed socket kills the IRIS job (vs drain+EOF). **An m-stdlib STDNET
-  increment** (not v-web). When fixed + MSL re-tagged, drop the `'$zversion["IRIS"`
-  arm of `readbackSafe()` and bump the pin → IRIS read-back goes green. See
-  `docs/memory/stdnet-iris-crlf-rawread-gap.md` for the fix sketch.
+- ✅ **`stdnet-iris-crlf-rawread-gap` GAP 2 (peer-closed read) RESOLVED** — fixed
+  in MSL **v0.12.2** (`readIris` drains-then-EOFs under an ObjectScript try/catch);
+  v-web repinned v0.12.1→v0.12.2 + dropped the static `readbackSafe()` gate; the
+  IRIS read-back is green. **Both STDNET IRIS socket gaps are closed.**
 - ✅ **Repo + push DONE** — github.com/vista-cloud-dev/v-web is live (public,
-  default `main`); `main` + `m6.3-vweb-listener` pushed; `repin-msl-v0.12.1`
-  pushed with this increment.
+  default `main`); `main` + `m6.3-vweb-listener` + `repin-msl-v0.12.1` pushed;
+  `repin-msl-v0.12.2` pushed with this increment.
 - 🔬 **Live observation** of TaskMan launch / XPAR reads / TLS on vehu/foia
   (bound + asserted; live run owed, the VSLTASK M5 posture).
 - ➡️ **M6.4** — FHIR `/Patient` handler on this transport.

@@ -1,6 +1,6 @@
 ---
 name: stdnet-iris-crlf-rawread-gap
-description: Two STDNET IRIS socket gaps found by the VWEB serve vertical. GAP 1 (CRLF) RESOLVED — readIris did a CR-terminated read that stripped CRLF, breaking HTTP framing; fixed in m-stdlib v0.12.1 (PR #18, byte-at-a-time read *c:t) and v-web repinned. GAP 2 OPEN — $$read^STDNET on a PEER-CLOSED socket on IRIS raises an uncatchable <DSCON>-class disconnect that KILLS the job (instead of draining buffered bytes + EOF), so the client read-BACK assertion can't run on IRIS; an m-stdlib STDNET follow-up. The server-side serve path is IRIS-clean.
+description: Two STDNET IRIS socket gaps found by the VWEB serve vertical, both now RESOLVED. GAP 1 (CRLF) RESOLVED — readIris did a CR-terminated read that stripped CRLF, breaking HTTP framing; fixed in m-stdlib v0.12.1 (PR #18, byte-at-a-time read *c:t) and v-web repinned. GAP 2 RESOLVED — $$read^STDNET on a PEER-CLOSED socket on IRIS raised an uncatchable <DSCON>-class disconnect that KILLED the job (instead of draining buffered bytes + EOF), so the client read-BACK assertion couldn't run on IRIS; fixed in m-stdlib v0.12.2 (readIris drains-then-EOFs under an ObjectScript try/catch, STDNETTST 22/22 dual-engine), v-web repinned to v0.12.2 and dropped the static gate so tServeHealthOverSocket's read-back runs green on both engines.
 metadata:
   type: project
 ---
@@ -37,7 +37,7 @@ stays as a live regression guard (auto-skips if a future engine re-breaks CRLF).
 
 ---
 
-## GAP 2 — read on a PEER-CLOSED socket kills the IRIS job — ⛔ OPEN (m-stdlib follow-up)
+## GAP 2 — read on a PEER-CLOSED socket kills the IRIS job — ✅ RESOLVED (MSL v0.12.2)
 
 **Found by M6.3's repin session, 2026-06-17.** Unmasked once GAP 1 was fixed and
 the IRIS serve tests started running: the **client read-BACK** in
@@ -58,17 +58,18 @@ known-gap gate** — `readbackSafe()` in `tests/VWEBLTST.m`: `$$rawByteSafe()` A
 `'$zversion["IRIS"`. It guards ONLY the read-back test
 (`tServeHealthOverSocket`); the other IRIS serve tests are unaffected.
 
-**Fix sketch (an m-stdlib STDNET increment — NOT v-web):** make `readIris`
-**drain-then-EOF on a peer-closed connection** — catch / pre-empt the IRIS
-disconnect (e.g. test the device's connection state, or trap the `<DSCON>` via
-the IRIS `try/catch`+`$zerror` arm STDHTTPD uses, returning the buffered bytes
-then 0/EOF) rather than letting it halt the job. Add a peer-closed-read
-regression to `STDNETTST` (open a loopback pair, close the peer, assert the read
-drains + EOFs without aborting). YDB needs no change.
+**Fix (m-stdlib `stdnet-iris-peerclosed-read`, master `8574af4`, tag `v0.12.2`):**
+`readIris` now **drains-then-EOFs a peer-closed connection** — the read runs under
+an ObjectScript `try/catch` arm that traps the `<DSCON>`-class disconnect and
+returns the buffered bytes then 0/EOF rather than letting it halt the job. Added a
+peer-closed-read regression to `STDNETTST` (now 22/22 dual-engine). No `@seam
+STDNET` contract change → a patch release. YDB path untouched.
 
-**To close it:** land the STDNET fix as its own m-stdlib increment, re-tag MSL,
-then in v-web **drop the `'$zversion["IRIS"` arm of `readbackSafe()`** (or delete
-the gate) and bump the pin. Follow-up prompt:
-`docs/prompts/m6-stdnet-iris-peerclosed-read-kickoff.md` (in the `docs` repo).
+**v-web consequence (closed 2026-06-17, this branch):** repinned MSL `v0.12.1` →
+**`v0.12.2`** (`dist/msl-seam-pin.json`; seams byte-identical, only `msl_ref`
+moved) and **deleted the static `readbackSafe()` gate** — `tServeHealthOverSocket`
+now guards on `$$rawByteSafe()` like the sibling serve tests. The client read-back
+**RUNS GREEN on IRIS** (was a skip): VWEBLTST is 12/12 on **both** engines, suite
+total 30/0 dual-engine, no 0/0 abort. Both STDNET IRIS socket gaps are closed.
 
 See [[m6.3-vweb-listener]].
