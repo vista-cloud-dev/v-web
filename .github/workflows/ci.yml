@@ -11,13 +11,19 @@ jobs:
   arch:
     uses: vista-cloud-dev/.github/.github/workflows/arch-waterline.yml@main
 
-  # The registry-driven drift gates + the cross-repo MSL seam-contract pin +
-  # the KIDS-build drift gate (engine-free, pure-Python). The engine-bound M
-  # suite (fmt/lint/test under YDB+IRIS) runs via m-ci.yml's engine-targets.
+  # The registry-driven drift gates + the cross-repo MSL seam-contract pin
+  # (pure-Python, engine-free — no `m` binary, no engine, no sibling checkouts).
   #   check-msl-pin SKIPs green in CI (sibling m-stdlib not checked out).
-  #   check-kids SKIPs green in CI (v-pkg binary not present).
+  # NOT in CI (run locally via `make check-fast` / `make test`):
+  #   - fmt-check / lint — the Makefile `M` defaults to a local path the CI
+  #     runner doesn't have (same posture as v-stdlib); the PostToolUse fmt hook
+  #     + `make check-fast` cover them at dev time.
+  #   - check-kids — needs the v-pkg binary (absent in CI).
+  #   - the engine-bound suite (`test`) — v-web stages m-stdlib + v-stdlib /src
+  #     via --routines, which CI does not check out; verified locally over the
+  #     driver stack (m test --docker m-test-engine / m-test-iris), dual-engine.
   ci:
     uses: vista-cloud-dev/.github/.github/workflows/m-ci.yml@main
     with:
-      engine-free-targets: "fmt-check lint check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids"
-      engine-targets: "test"
+      engine-free-targets: "check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access"
+      engine-targets: ""

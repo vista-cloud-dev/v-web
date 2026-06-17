@@ -22,13 +22,13 @@ VWEBLTST	; v-web — VWEBL (inbound listener + accept-loop + worker handoff) sui
 	;
 rawByteSafe()	; 1 iff raw sockets preserve CRLF bytes end-to-end — the precondition
 	; for HTTP framing (the request/response terminator is CRLFCRLF). YDB: yes.
-	; IRIS today: NO — STDNET's readIris does a CR-terminated read that stops at
-	; the first CR and strips CRLF, so the framed request arrives mangled and
-	; STDHTTPD returns 400. That is an STDNET M2.T1 raw-read gap (its loopback
-	; suite used terminator-free payloads, so never exercised CRLF) — an m-stdlib
-	; follow-up, NOT a v-web bug (see docs/memory/m6.3-vweb-listener.md). The
-	; serve-over-socket tests skip LOUDLY until it lands; this probe auto-heals
-	; them the moment STDNET preserves CRLF on IRIS.
+	; IRIS: yes since MSL v0.12.1 — STDNET's readIris was CR-terminated (stopped at
+	; the first CR, stripping CRLF, so the framed request arrived mangled → 400);
+	; the fix reads byte-exact (see docs/memory/stdnet-iris-crlf-rawread-gap.md).
+	; This probe stays as the live regression guard (auto-skips if a future engine
+	; regresses CRLF). Reading a peer-CLOSED socket is also clean on both engines
+	; since MSL v0.12.2 (STDNET readIris drains + EOFs vs killing the job), so the
+	; on-the-wire read-back test guards on this same probe.
 	new srv,cli,conn,port,n,cr,msg,buf,ok
 	if '$$available^STDNET() quit 0
 	set cr=$char(13,10),msg="a"_cr_"b"_cr_cr,ok=0,buf=""
@@ -50,7 +50,7 @@ tHealthHandler(pass,fail)	;@TEST "the /healthz handler sets a 200 ok response"
 tServeHealthOverSocket(pass,fail)	;@TEST "a real GET /healthz over a socket is served by STDHTTPD and the 200 written back (byte-exact)"
 	new srv,cli,conn,port,SRV,opts,n,cr,req,resp,rn,R
 	if '$$available^STDNET() do true^STDASSERT(.pass,.fail,1,"sockets not wired here - skipped") quit
-	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"raw sockets mangle CRLF here (STDNET IRIS raw-read gap, m-stdlib follow-up) - serve skipped; YDB-proven") quit
+	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"sockets unavailable or raw CRLF not preserved here - serve skipped (regression guard; CRLF fixed on IRIS @ MSL v0.12.1)") quit
 	set cr=$char(13,10)
 	set req="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
 	do healthRoutes^VWEBL(.SRV)
@@ -70,7 +70,7 @@ tServeHealthOverSocket(pass,fail)	;@TEST "a real GET /healthz over a socket is s
 tServeKeepAlive(pass,fail)	;@TEST "keep-alive: serveConn loops multiple pipelined requests on one connection"
 	new srv,cli,conn,port,SRV,opts,n,cr,req1,req2
 	if '$$available^STDNET() do true^STDASSERT(.pass,.fail,1,"sockets not wired here - skipped") quit
-	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"raw sockets mangle CRLF here (STDNET IRIS raw-read gap, m-stdlib follow-up) - serve skipped; YDB-proven") quit
+	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"sockets unavailable or raw CRLF not preserved here - serve skipped (regression guard; CRLF fixed on IRIS @ MSL v0.12.1)") quit
 	set cr=$char(13,10)
 	set req1="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_cr
 	set req2="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
@@ -87,7 +87,7 @@ tServeKeepAlive(pass,fail)	;@TEST "keep-alive: serveConn loops multiple pipeline
 tConnectionCloseEndsIt(pass,fail)	;@TEST "Connection: close ends the connection after one request"
 	new srv,cli,conn,port,SRV,opts,n,cr,req
 	if '$$available^STDNET() do true^STDASSERT(.pass,.fail,1,"sockets not wired here - skipped") quit
-	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"raw sockets mangle CRLF here (STDNET IRIS raw-read gap, m-stdlib follow-up) - serve skipped; YDB-proven") quit
+	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"sockets unavailable or raw CRLF not preserved here - serve skipped (regression guard; CRLF fixed on IRIS @ MSL v0.12.1)") quit
 	set cr=$char(13,10)
 	set req="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
 	do healthRoutes^VWEBL(.SRV)
@@ -103,7 +103,7 @@ tConnectionCloseEndsIt(pass,fail)	;@TEST "Connection: close ends the connection 
 tAcceptOneServes(pass,fail)	;@TEST "acceptOne() accepts a pending connection and serves it (returns 1)"
 	new srv,cli,port,SRV,opts,n,cr,req
 	if '$$available^STDNET() do true^STDASSERT(.pass,.fail,1,"sockets not wired here - skipped") quit
-	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"raw sockets mangle CRLF here (STDNET IRIS raw-read gap, m-stdlib follow-up) - serve skipped; YDB-proven") quit
+	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"sockets unavailable or raw CRLF not preserved here - serve skipped (regression guard; CRLF fixed on IRIS @ MSL v0.12.1)") quit
 	set cr=$char(13,10),req="GET /healthz HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
 	do healthRoutes^VWEBL(.SRV)
 	set srv=$$listen^VWEBIO(0),port=$$boundport^VWEBIO(srv)
