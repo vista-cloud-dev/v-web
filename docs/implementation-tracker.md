@@ -131,3 +131,33 @@ vertical is now fully dual-engine.** GAP 1 ✅ / GAP 2 ✅.
 - 🔬 **Live observation** of TaskMan launch / XPAR reads / TLS on vehu/foia
   (bound + asserted; live run owed, the VSLTASK M5 posture).
 - ➡️ **M6.4** — FHIR `/Patient` handler on this transport.
+
+---
+
+## M6.4 — FHIR `GET /Patient/:id` (DONE 2026-06-17, branch `m6.4-fhir-patient`)
+
+`VWEBR` router + the minimal FHIR R4 Patient handler reading #2 via VSLFS;
+`routes^VWEBR` owns the table. Bare 38/38 both engines, vehu 35/35 (live #2
+read), foia 27/27. KIDS `VWEB*1.0*2`. See `docs/memory/m6.4-vweb-fhir-patient.md`.
+
+## M6.5 — VWEBA auth middleware → DUZ/#200 (DONE 2026-06-17, branch `m6.5-auth`)
+
+`VWEBA` closes the M6.4 route: a Bearer JWT → authenticated subject (STDJWT,
+`m`) → #200 IEN/DUZ (VSLSEC `$$bySecid`/`ien` map, `v`); **401** unauthenticated
+(+`WWW-Authenticate` + FHIR OperationOutcome), **403** unprovisioned, `/healthz`
+open. The relying-party half of *validate-a-token-not-the-PIV-card* (grounded in
+the vdocs corpus + VA IAM/PIV/SMART research). Registered via `register^VWEBA`
+(`use^STDHTTPD`) from `routes^VWEBR`; `getPatient` stays auth-agnostic. Config via
+the `^VWEB("rtcfg")` cache → XPAR → default; **fail-closed** on an empty key.
+Provider seam (`$$validate`) wires **jwt** now; introspection/SAML are future
+providers behind it.
+
+- **Verified:** bare YDB+IRIS **77/77** (security guarantees); **vehu 23+35**,
+  **foia 23+27** (full token→DUZ e2e + 403, live both engines). All gates green;
+  KIDS **VWEB*1.0*3** (+`VWEBA`, +6 auth XPAR params); icr 2263/DBS for the two
+  $text-probed L4 symbols.
+- **OWED:** bump the MSL pin → **v0.13.0 + the STDJWT seam** once the user **tags
+  MSL v0.13.0** (today the pin stays v0.12.2; STDJWT is consumed-but-unpinned and
+  `check-msl-pin` SKIP-greens against the unreachable tag). Merge order: MSL
+  v0.13.0 → v-stdlib `m6.5-secid-binding` → v-web `m6.5-auth` (repin + flip).
+- ➡️ **M6.6** — the §9 TLS smoke test that closes the M6 capstone.

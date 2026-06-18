@@ -37,6 +37,10 @@ routes(SRV)	; Build the route table: GET /healthz (kept) + GET /Patient/:id (new
 	; doc: @param SRV  array  by-ref route table (populated by side-effect)
 	; First-registered wins on overlap (STDHTTPD §6); /healthz stays the liveness
 	; probe, /Patient/:id is the first FileMan-backed route.
+	; Auth (M6.5): register VWEBA's middleware FIRST so it runs ahead of every
+	; handler; it gates protected routes and lets the open path (/healthz) through.
+	; getPatient stays byte-for-byte auth-agnostic (identity lives in the middleware).
+	do register^VWEBA(.SRV)
 	do route^STDHTTPD(.SRV,"GET","/healthz","health^VWEBL")
 	do route^STDHTTPD(.SRV,"GET","/Patient/:id","getPatient^VWEBR")
 	quit

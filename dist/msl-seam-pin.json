@@ -1,5 +1,5 @@
 {
-  "msl_ref": "v0.12.2",
+  "msl_ref": "v0.13.0",
   "seams": {
     "STDENV": {
       "contract_version": 1,
@@ -292,6 +292,120 @@
           "returns": {
             "doc": "full response bytes (status line + headers + CRLF + body)",
             "type": "string"
+          }
+        }
+      ]
+    },
+    "STDJWT": {
+      "contract_version": 1,
+      "entry_points": [
+        {
+          "args": [
+            {
+              "doc": "compact JWS",
+              "name": "token",
+              "type": "string"
+            },
+            {
+              "doc": "claim name (e.g. \"sub\", \"iss\", \"scope\")",
+              "name": "name",
+              "type": "string"
+            }
+          ],
+          "label": "$$claim^STDJWT(token, name)",
+          "raises": [],
+          "returns": {
+            "doc": "the claim's scalar value, or \"\" if absent/unparseable",
+            "type": "string"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "compact JWS",
+              "name": "token",
+              "type": "string"
+            },
+            {
+              "doc": "by-ref; the decoded JOSE header tree",
+              "name": "hdr",
+              "type": "array"
+            },
+            {
+              "doc": "by-ref; the decoded claims (payload) tree",
+              "name": "claims",
+              "type": "array"
+            }
+          ],
+          "label": "$$decode^STDJWT(token, hdr, claims)",
+          "raises": [],
+          "returns": {
+            "doc": "1 if both segments base64url-decode and parse as JSON; else 0",
+            "type": "bool"
+          }
+        },
+        {
+          "args": [],
+          "label": "$$lastError^STDJWT()",
+          "raises": [],
+          "returns": {
+            "doc": "the last failure message, or \"\"",
+            "type": "string"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "by-ref claims tree (STDJSON typed nodes)",
+              "name": "claims",
+              "type": "array"
+            },
+            {
+              "doc": "HMAC shared secret",
+              "name": "key",
+              "type": "string"
+            },
+            {
+              "doc": "by-ref; reserved (header overrides) — optional",
+              "name": "opts",
+              "type": "array"
+            }
+          ],
+          "label": "$$sign^STDJWT(claims, key, opts)",
+          "raises": [],
+          "returns": {
+            "doc": "a signed HS256 token",
+            "type": "string"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "compact JWS (header.payload.signature, base64url)",
+              "name": "token",
+              "type": "string"
+            },
+            {
+              "doc": "HMAC shared secret (HS256)",
+              "name": "key",
+              "type": "string"
+            },
+            {
+              "doc": "by-ref; populated with the claims tree (STDJSON typed nodes)",
+              "name": "claims",
+              "type": "array"
+            },
+            {
+              "doc": "by-ref; now/leeway/iss/aud/alg (all optional)",
+              "name": "opts",
+              "type": "array"
+            }
+          ],
+          "label": "$$verify^STDJWT(token, key, claims, opts)",
+          "raises": [],
+          "returns": {
+            "doc": "1 if signature + exp/nbf/iss/aud all pass; 0 otherwise ($$lastError set)",
+            "type": "bool"
           }
         }
       ]
