@@ -13,7 +13,8 @@
       "VWEBCFG",
       "VWEBENV",
       "VWEBIO",
-      "VWEBL"
+      "VWEBL",
+      "VWEBR"
     ]
   }
 }
