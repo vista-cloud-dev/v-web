@@ -1,12 +1,48 @@
 {
   "package": "VWEB",
   "version": "1.0",
-  "patch": "2",
+  "patch": "3",
   "envCheck": "VWEBENV",
   "components": {
-    "routines": ["VWEBCFG", "VWEBENV", "VWEBIO", "VWEBL", "VWEBR"],
+    "routines": ["VWEBA", "VWEBCFG", "VWEBENV", "VWEBIO", "VWEBL", "VWEBR"],
     "options": ["VWEB LISTENER"],
     "parameterDefinitions": [
+      {
+        "name": "VWEB AUTH PROVIDER",
+        "displayText": "VWEB auth provider: jwt (default). Future: introspect / saml (read via VWEBA $$cfg)",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VWEB AUTH JWT KEY",
+        "displayText": "VWEB HS256 JWT verify key (the shared secret; empty = auth fail-closed)",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VWEB AUTH ISSUER",
+        "displayText": "VWEB required token issuer (iss); empty = not enforced",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VWEB AUTH AUDIENCE",
+        "displayText": "VWEB required token audience (aud); empty = not enforced",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VWEB AUTH SUBJECT CLAIM",
+        "displayText": "VWEB token claim carrying the principal (default sub; read via VWEBA $$cfg)",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VWEB AUTH IDENTITY MAP",
+        "displayText": "VWEB subject->#200 map: secid (EN1^XUPSQRY, default) | ien (subject is a #200 IEN)",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
       {
         "name": "VWEB LISTEN PORT",
         "displayText": "VWEB inbound listener TCP port (read by VWEBL via $$port^VWEBCFG at SYS)",
