@@ -14,8 +14,8 @@ the `docs` repo `docs/vsl-msl/vsl-implementation-plan.md` +
 | M6.2 | `STDHTTPD` framework (m-stdlib) | 🟢 DONE (MSL v0.11.0) |
 | **M6.3** | **`v-web` skeleton + `VWEBIO`/`VWEBL` listener** | **🟢 DONE 2026-06-17** |
 | **M6.4** | **`VWEBR` router + FHIR `/Patient/:id` handler (VSLFS)** | **🟢 DONE 2026-06-17** |
-| M6.5 | `VWEBA` auth (bearer/introspection → DUZ/#200) | ⬜ next |
-| M6.6 | the §9 smoke test (full vertical, both engines, KIDS install→back-out) | ⬜ |
+| **M6.5** | **`VWEBA` auth (bearer/introspection → DUZ/#200)** | **🟢 DONE 2026-06-17** |
+| **M6.6** | **the §9 smoke test (full vertical, both engines, KIDS lifecycle)** | **🟢 DONE 2026-06-18 — M6 CAPSTONE CLOSED** |
 
 ## M6.4 — DONE (2026-06-17)
 
@@ -160,4 +160,56 @@ providers behind it.
   MSL v0.13.0** (today the pin stays v0.12.2; STDJWT is consumed-but-unpinned and
   `check-msl-pin` SKIP-greens against the unreachable tag). Merge order: MSL
   v0.13.0 → v-stdlib `m6.5-secid-binding` → v-web `m6.5-auth` (repin + flip).
+  ✅ **CLOSED** — the pin is now at **MSL v0.13.0** (6 seams, `check-msl-pin` green)
+  on the `m6.5-auth-on-main` base; v-stdlib `$$bySecid^VSLSEC` is committed.
 - ➡️ **M6.6** — the §9 TLS smoke test that closes the M6 capstone.
+
+## M6.6 — the §9 end-to-end smoke (DONE 2026-06-18, branch `m6.6-tls-smoke`) — M6 CAPSTONE CLOSED
+
+The capstone close. **Composition + verification, no production surface**: a new
+suite **`tests/VWEBE2ETST.m`** (6 tests) drives the whole VWEB*/VSL*/STD* vertical
+through one front door over a REAL socket. See `docs/memory/m6.6-vweb-smoke.md`.
+
+Shipped (all in `tests/` — not part of the KIDS build; src routines unchanged):
+- **The capstone leg that was never tested e2e:** an **authenticated 200 FHIR
+  Patient over a real socket** (`tAuthenticatedPatient200OverSocket`) — auth
+  middleware + #200 bind + VSLFS #2 read + STDJSON, all at once on the wire (M6.5
+  proved 401-over-socket + authenticated-200-via-`$$dispatch`; M6.4 proved
+  200-over-socket auth-stripped — this is the union). Plus open-path 200, tokenless
+  **401 through the LIVE registered chain**, **403** unprovisioned, and the **§9
+  TLS gap-loud** assertion (`$$listenTls`→`,U-VWEB-NOTLS,`; the real HTTPS
+  round-trip soft-skips until cert + `XU*8.0*787`, never faked).
+- **Makefile `CHSET` passthrough** — YDB needs byte mode (`--chset m`) or VWEBATST
+  aborts 0/0 (JWT/HMAC bytes >127). `CHSET` defaults to `m` for `ENGINE=ydb`
+  (empty for IRIS), folded into `ENGINE_FLAGS`, mirroring m-stdlib's byte-mode
+  default — so `make check`/`make test` are genuinely green for YDB as written.
+
+**Verification (driver stack only):**
+- bare YDB (m-test-engine, `--chset m`): VWEBE2ETST **15/15**; `make check
+  ENGINE=ydb DOCKER=m-test-engine` exit 0 — all gates + **92/92 across 7 suites**.
+- bare IRIS (m-test-iris): VWEBE2ETST **15/15**; full `make test` **92/92**.
+- **vehu** (YDB-VistA): VWEBE2ETST **20/20** — the authenticated 200 over the
+  wire + 403, live.
+- **foia-t12** (IRIS-VistA, `--namespace VISTA`): VWEBE2ETST **16/16** — 403 live;
+  the authenticated 200 soft-skips on the empty/scrubbed #2 (the M6.4 posture).
+
+**Test-side gotchas (fixed):** STDHTTPD's route table is INDEXED
+(`SRV("route",n,"pattern")`), not path-keyed; `parseRsp^STDHTTPMSG` preserves
+response header-name CASE (use `$$hdr^STDHTTPMSG`, not a raw lowercased lookup).
+
+**Decisions (kickoff Q1/Q2):**
+- **Q1:** M6 is closed on the full *authenticated* vertical over plaintext
+  loopback (dual-engine + live) + the loud TLS gate. Real TLS stays the M2.T2
+  infra follow-up (no server cert / `XU*8.0*787` absent).
+- **Q2:** the KIDS install→verify→back-out of `VWEB*1.0*3` is **documented, not
+  run live** — a real back-out would orphan the XPAR param defs (#8989.51) + the
+  `VWEB LISTENER` option (#19) because v-pkg uninstall is routine-only (#9.7/#9.6).
+  Manual cleanup is documented; the **v-pkg uninstall-covers-#8989.51/#19
+  enhancement is filed separately** (cross-repo, non-blocking).
+
+**Owed (post-merge / coordinator):**
+- Shared docs-repo `vsl-implementation-tracker.md` M6 row rollup (M6.1–M6.6 into
+  the capstone summary) — coordinator lane, at the milestone boundary.
+- The v-pkg uninstall enhancement (#8989.51 + #19) — separate cross-repo ticket.
+- Merge `m6.6-tls-smoke` → `main` (explicit, user-requested — not part of the
+  increment protocol).

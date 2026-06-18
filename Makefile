@@ -21,9 +21,16 @@ VPKG ?= $(HOME)/vista-cloud-dev/v-pkg/dist/v-pkg
 # Engine selection for the engine-bound targets (test/coverage):
 #   make test ENGINE=ydb  DOCKER=m-test-engine
 #   make test ENGINE=iris DOCKER=m-test-iris
+# CHSET — the engine character set. YottaDB MUST run in byte (M) mode: VWEBA's
+# JWT/HMAC signing (STDCRYPTO) and the STDHTTPMSG byte framing are byte-oriented,
+# so under UTF-8 the auth suite aborts. Default to byte mode for YDB; IRIS ignores
+# it (always byte-safe). Mirrors m-stdlib's M_ENGINE_FLAGS byte-mode default.
+#   make test ENGINE=ydb  DOCKER=m-test-engine            (CHSET defaults to m)
+#   make test ENGINE=iris DOCKER=m-test-iris  CHSET=      (IRIS: no chset flag)
 ENGINE ?=
 DOCKER ?=
-ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOCKER))
+CHSET  ?= $(if $(filter ydb,$(ENGINE)),m)
+ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOCKER)) $(if $(CHSET),--chset $(CHSET))
 
 .PHONY: all check check-fast fmt fmt-check lint arch test coverage clean \
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
