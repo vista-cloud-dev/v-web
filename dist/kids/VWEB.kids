@@ -1,36 +1,60 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VWEB*1.0*2^
+**KIDS**:VWEB*1.0*3^
 
 **INSTALL NAME**
-VWEB*1.0*2
+VWEB*1.0*3
 "BLD",1,0)
-VWEB*1.0*2^VWEB^0^0
+VWEB*1.0*3^VWEB^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
 8989.51
 "BLD",1,"KRN",8989.51,"NM",0)
-^9.68A^5^5
+^9.68A^11^11
 "BLD",1,"KRN",8989.51,"NM",1,0)
-VWEB LISTEN PORT^^0
-"BLD",1,"KRN",8989.51,"NM","B","VWEB LISTEN PORT",1)
+VWEB AUTH PROVIDER^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB AUTH PROVIDER",1)
 
 "BLD",1,"KRN",8989.51,"NM",2,0)
-VWEB TLS SERVER CONFIG^^0
-"BLD",1,"KRN",8989.51,"NM","B","VWEB TLS SERVER CONFIG",2)
+VWEB AUTH JWT KEY^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB AUTH JWT KEY",2)
 
 "BLD",1,"KRN",8989.51,"NM",3,0)
-VWEB IDLE TIMEOUT^^0
-"BLD",1,"KRN",8989.51,"NM","B","VWEB IDLE TIMEOUT",3)
+VWEB AUTH ISSUER^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB AUTH ISSUER",3)
 
 "BLD",1,"KRN",8989.51,"NM",4,0)
-VWEB MAX BODY^^0
-"BLD",1,"KRN",8989.51,"NM","B","VWEB MAX BODY",4)
+VWEB AUTH AUDIENCE^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB AUTH AUDIENCE",4)
 
 "BLD",1,"KRN",8989.51,"NM",5,0)
+VWEB AUTH SUBJECT CLAIM^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB AUTH SUBJECT CLAIM",5)
+
+"BLD",1,"KRN",8989.51,"NM",6,0)
+VWEB AUTH IDENTITY MAP^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB AUTH IDENTITY MAP",6)
+
+"BLD",1,"KRN",8989.51,"NM",7,0)
+VWEB LISTEN PORT^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB LISTEN PORT",7)
+
+"BLD",1,"KRN",8989.51,"NM",8,0)
+VWEB TLS SERVER CONFIG^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB TLS SERVER CONFIG",8)
+
+"BLD",1,"KRN",8989.51,"NM",9,0)
+VWEB IDLE TIMEOUT^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB IDLE TIMEOUT",9)
+
+"BLD",1,"KRN",8989.51,"NM",10,0)
+VWEB MAX BODY^^0
+"BLD",1,"KRN",8989.51,"NM","B","VWEB MAX BODY",10)
+
+"BLD",1,"KRN",8989.51,"NM",11,0)
 VWEB MAX WORKERS^^0
-"BLD",1,"KRN",8989.51,"NM","B","VWEB MAX WORKERS",5)
+"BLD",1,"KRN",8989.51,"NM","B","VWEB MAX WORKERS",11)
 
 "BLD",1,"KRN","B",8989.51,8989.51)
 
@@ -45,7 +69,365 @@ VSL*1.0*2^2
 "BLD",1,"REQB","B","VSL*1.0*2",2)
 
 "RTN")
-5
+6
+"RTN","VWEBA")
+0^178^0^0
+"RTN","VWEBA",1,0)
+VWEBA	; v-web — auth middleware: a Bearer credential -> a VistA principal (DUZ/#200).
+"RTN","VWEBA",2,0)
+	;
+"RTN","VWEBA",3,0)
+	; M6.5 closes the M6.4 route. VWEBA is an STDHTTPD middleware ($$use, run
+"RTN","VWEBA",4,0)
+	; before every handler) that turns an inbound Bearer token into an
+"RTN","VWEBA",5,0)
+	; authenticated subject, binds that subject to a NEW PERSON (#200) IEN (DUZ),
+"RTN","VWEBA",6,0)
+	; and rejects the unauthenticated with 401. /healthz stays open (liveness).
+"RTN","VWEBA",7,0)
+	;
+"RTN","VWEBA",8,0)
+	; THE ARCHITECTURE (validate a TOKEN, not the PIV card). VA authentication is
+"RTN","VWEBA",9,0)
+	; PIV+PIN -> AD -> IAM SSOi/STS -> a signed token (SAML for staff, OAuth/JWT
+"RTN","VWEBA",10,0)
+	; for APIs); the relying party validates the TOKEN and maps it to a local
+"RTN","VWEBA",11,0)
+	; user. VWEBA is that relying party. The split is the m/v waterline:
+"RTN","VWEBA",12,0)
+	;   - token validation is engine-neutral -> STDJWT (m): signature + RFC 7519
+"RTN","VWEBA",13,0)
+	;     exp/nbf/iss/aud. (RS256/ES256 via JWKS + SAML/introspection are staged
+"RTN","VWEBA",14,0)
+	;     follow-on PROVIDERS behind $$validate's dispatch; M6.5 wires "jwt".)
+"RTN","VWEBA",15,0)
+	;   - the subject -> #200 IEN binding is VistA-specific -> VSLSEC (v): SecID
+"RTN","VWEBA",16,0)
+	;     via EN1^XUPSQRY (the SSOi map), mirroring Kernel's own XUSAML/XUESSO2.
+"RTN","VWEBA",17,0)
+	; VWEBA itself makes NO direct VistA call (all via VSL*/STD*), so the ICR
+"RTN","VWEBA",18,0)
+	; registry stays empty and the no-direct-global gate is trivially green.
+"RTN","VWEBA",19,0)
+	;
+"RTN","VWEBA",20,0)
+	; CONFIG ($$cfg) reads a runtime-config cache ^VWEB("rtcfg",<param>) FIRST
+"RTN","VWEBA",21,0)
+	; (the listener can warm it at startup; tests set it directly so the chain
+"RTN","VWEBA",22,0)
+	; runs with no XPAR / no KIDS install), then XPAR via VWEBCFG (the source of
+"RTN","VWEBA",23,0)
+	; truth on a live system), then a default. FAIL-CLOSED: with no signing key
+"RTN","VWEBA",24,0)
+	; configured, every token is rejected (never silently open).
+"RTN","VWEBA",25,0)
+	;
+"RTN","VWEBA",26,0)
+	; DUZ: on a successful authentication VWEBA SETS DUZ to the bound #200 IEN so
+"RTN","VWEBA",27,0)
+	; the handler's VSLFS/FileMan reads run AS the authenticated user. It is set
+"RTN","VWEBA",28,0)
+	; on every authenticated request before the handler runs; a failed auth
+"RTN","VWEBA",29,0)
+	; short-circuits (CTX("stop")) BEFORE the handler, so a stale DUZ from a prior
+"RTN","VWEBA",30,0)
+	; keep-alive request never reaches a handler. The binding is a VistA operation
+"RTN","VWEBA",31,0)
+	; ($text(GET1^DIQ)-gated): on a bare engine a cryptographically-verified
+"RTN","VWEBA",32,0)
+	; request passes through with DUZ unresolved (bare handlers touch no FileMan).
+"RTN","VWEBA",33,0)
+	;
+"RTN","VWEBA",34,0)
+	; Layer: v. Consumes STDHTTPD/STDJSON/STDJWT/STDSTR (m) + VSLSEC/VWEBCFG (v).
+"RTN","VWEBA",35,0)
+	;
+"RTN","VWEBA",36,0)
+	; Public:
+"RTN","VWEBA",37,0)
+	;   register(.SRV)        — register authn^VWEBA as a middleware on SRV
+"RTN","VWEBA",38,0)
+	;   authn(.REQ,.RSP,.CTX) — the middleware (STDHTTPD 3-arg signature)
+"RTN","VWEBA",39,0)
+	;   isOpen(path)          — 1 iff `path` is an open (no-auth) path
+"RTN","VWEBA",40,0)
+	;   bearer(.REQ)          — extract the Bearer token from REQ, or ""
+"RTN","VWEBA",41,0)
+	;   bind(subject,method)  — map an authenticated subject to a #200 IEN, or ""
+"RTN","VWEBA",42,0)
+	;   lastError()           — the last auth-failure reason
+"RTN","VWEBA",43,0)
+	;
+"RTN","VWEBA",44,0)
+	quit
+"RTN","VWEBA",45,0)
+	;
+"RTN","VWEBA",46,0)
+register(SRV)	; Register authn^VWEBA so it runs ahead of every handler.
+"RTN","VWEBA",47,0)
+	; doc: @param SRV  array  by-ref route table / server config (STDHTTPD)
+"RTN","VWEBA",48,0)
+	; Called from routes^VWEBR. Middleware run in registration order, before the
+"RTN","VWEBA",49,0)
+	; route match, for EVERY request (so authn itself skips the open path).
+"RTN","VWEBA",50,0)
+	do use^STDHTTPD(.SRV,"authn^VWEBA")
+"RTN","VWEBA",51,0)
+	quit
+"RTN","VWEBA",52,0)
+	;
+"RTN","VWEBA",53,0)
+authn(REQ,RSP,CTX)	; The auth middleware: authenticate + bind, or short-circuit 401/403.
+"RTN","VWEBA",54,0)
+	; doc: @param REQ  array  by-ref parsed request (reads hdr; stashes REQ("auth",...))
+"RTN","VWEBA",55,0)
+	; doc: @param RSP  array  by-ref response (populated on a 401/403 short-circuit)
+"RTN","VWEBA",56,0)
+	; doc: @param CTX  array  by-ref middleware context; CTX("stop")=1 halts the chain
+"RTN","VWEBA",57,0)
+	; The STDHTTPD middleware contract: do @authn^VWEBA(.REQ,.RSP,.CTX); set
+"RTN","VWEBA",58,0)
+	; CTX("stop")=1 + populate RSP to deny (handler never runs, dispatch returns
+"RTN","VWEBA",59,0)
+	; RSP("status")). A clean return lets the request continue to the handler.
+"RTN","VWEBA",60,0)
+	new tok,subject,duz
+"RTN","VWEBA",61,0)
+	set subject=""
+"RTN","VWEBA",62,0)
+	if $$isOpen($get(REQ("path"))) quit
+"RTN","VWEBA",63,0)
+	set tok=$$bearer(.REQ)
+"RTN","VWEBA",64,0)
+	if tok="" do deny401(.RSP,.CTX,"missing or malformed Bearer credential",0) quit
+"RTN","VWEBA",65,0)
+	if '$$validate(tok,.subject) do deny401(.RSP,.CTX,$$lastError(),1) quit
+"RTN","VWEBA",66,0)
+	set REQ("auth","subject")=subject
+"RTN","VWEBA",67,0)
+	; bind subject -> VistA principal (live VistA only)
+"RTN","VWEBA",68,0)
+	if '$$hasVista() quit
+"RTN","VWEBA",69,0)
+	set duz=$$bind(subject,$$cfg("VWEB AUTH IDENTITY MAP","secid"))
+"RTN","VWEBA",70,0)
+	if duz="" do deny403(.RSP,.CTX,"authenticated subject is not provisioned in NEW PERSON (#200)") quit
+"RTN","VWEBA",71,0)
+	set DUZ=duz,REQ("auth","duz")=duz
+"RTN","VWEBA",72,0)
+	quit
+"RTN","VWEBA",73,0)
+	;
+"RTN","VWEBA",74,0)
+isOpen(path)	; 1 iff `path` is an open (no-authentication) path.
+"RTN","VWEBA",75,0)
+	; doc: @param path  string  the request path
+"RTN","VWEBA",76,0)
+	; doc: @returns     bool    1 for the liveness probe (/healthz), else 0
+"RTN","VWEBA",77,0)
+	; The allow-list is intentionally tiny: liveness must answer without a token.
+"RTN","VWEBA",78,0)
+	quit $get(path)="/healthz"
+"RTN","VWEBA",79,0)
+	;
+"RTN","VWEBA",80,0)
+bearer(REQ)	; Extract the token from an "Authorization: Bearer <token>" header, or "".
+"RTN","VWEBA",81,0)
+	; doc: @param REQ  array  by-ref parsed request (REQ("hdr","authorization"))
+"RTN","VWEBA",82,0)
+	; doc: @returns    string the Bearer token, or "" (absent / non-Bearer scheme)
+"RTN","VWEBA",83,0)
+	; STDHTTPMSG lowercases header NAMES; the scheme match here is case-insensitive.
+"RTN","VWEBA",84,0)
+	new h
+"RTN","VWEBA",85,0)
+	set h=$get(REQ("hdr","authorization"))
+"RTN","VWEBA",86,0)
+	if h="" quit ""
+"RTN","VWEBA",87,0)
+	if $$toLowerASCII^STDSTR($piece(h," ",1))'="bearer" quit ""
+"RTN","VWEBA",88,0)
+	quit $piece(h," ",2,$length(h," "))
+"RTN","VWEBA",89,0)
+	;
+"RTN","VWEBA",90,0)
+bind(subject,method)	; Map an authenticated subject to a #200 IEN (DUZ), or "".
+"RTN","VWEBA",91,0)
+	; doc: @param subject  string  the authenticated subject (a SecID, or a #200 IEN)
+"RTN","VWEBA",92,0)
+	; doc: @param method   string  the identity-map method: "secid" (default) | "ien"
+"RTN","VWEBA",93,0)
+	; doc: @returns        numeric the bound #200 IEN, or "" if not provisioned
+"RTN","VWEBA",94,0)
+	; secid = the SSOi/production map (VSLSEC -> EN1^XUPSQRY); ien = the subject IS
+"RTN","VWEBA",95,0)
+	; a #200 IEN (the dev/direct map). Both go through VSLSEC (v->v; no #200 read here).
+"RTN","VWEBA",96,0)
+	if $get(method)="ien" quit $$byIen(subject)
+"RTN","VWEBA",97,0)
+	quit $$bySecid^VSLSEC(subject)
+"RTN","VWEBA",98,0)
+	;
+"RTN","VWEBA",99,0)
+lastError()	; The last auth-failure reason ("" when none).
+"RTN","VWEBA",100,0)
+	; doc: @returns  string  ^TMP($job,"vweba","err"), or ""
+"RTN","VWEBA",101,0)
+	quit $get(^TMP($job,"vweba","err"))
+"RTN","VWEBA",102,0)
+	;
+"RTN","VWEBA",103,0)
+	; ---------- internals ----------
+"RTN","VWEBA",104,0)
+	;
+"RTN","VWEBA",105,0)
+validate(tok,subject)	; Provider dispatch: validate `tok` -> 1 + the subject by-ref, else 0.
+"RTN","VWEBA",106,0)
+	; doc: @internal
+"RTN","VWEBA",107,0)
+	; The provider seam. M6.5 wires the "jwt" provider (STDJWT, HS256). RFC 7662
+"RTN","VWEBA",108,0)
+	; introspection / SAML are future providers dispatched on VWEB AUTH PROVIDER.
+"RTN","VWEBA",109,0)
+	new key,claims,opts,prov
+"RTN","VWEBA",110,0)
+	set subject="",prov=$$cfg("VWEB AUTH PROVIDER","jwt")
+"RTN","VWEBA",111,0)
+	if prov'="jwt" do seterr("unsupported auth provider '"_prov_"'") quit 0
+"RTN","VWEBA",112,0)
+	set key=$$cfg("VWEB AUTH JWT KEY","")
+"RTN","VWEBA",113,0)
+	if key="" do seterr("server auth is not configured (no signing key)") quit 0
+"RTN","VWEBA",114,0)
+	set opts("iss")=$$cfg("VWEB AUTH ISSUER","")
+"RTN","VWEBA",115,0)
+	set opts("aud")=$$cfg("VWEB AUTH AUDIENCE","")
+"RTN","VWEBA",116,0)
+	if '$$verify^STDJWT(tok,key,.claims,.opts) do seterr($$lastError^STDJWT()) quit 0
+"RTN","VWEBA",117,0)
+	set subject=$$valueOf^STDJSON($get(claims($$cfg("VWEB AUTH SUBJECT CLAIM","sub"))))
+"RTN","VWEBA",118,0)
+	if subject="" do seterr("the token carries no subject claim") quit 0
+"RTN","VWEBA",119,0)
+	quit 1
+"RTN","VWEBA",120,0)
+	;
+"RTN","VWEBA",121,0)
+byIen(subject)	; The "ien" identity map: the subject IS a #200 IEN; validate it resolves.
+"RTN","VWEBA",122,0)
+	; doc: @internal
+"RTN","VWEBA",123,0)
+	if subject'?1.N quit ""
+"RTN","VWEBA",124,0)
+	if $$user^VSLSEC(subject)="" quit ""
+"RTN","VWEBA",125,0)
+	quit subject
+"RTN","VWEBA",126,0)
+	;
+"RTN","VWEBA",127,0)
+cfg(name,default)	; Resolve an auth config param: rtcfg cache -> XPAR (VWEBCFG) -> default.
+"RTN","VWEBA",128,0)
+	; doc: @internal
+"RTN","VWEBA",129,0)
+	; ^VWEB("rtcfg",name) is the runtime cache (listener-warmed / test-set); XPAR
+"RTN","VWEBA",130,0)
+	; (#8989.51 via VWEBCFG) is the source of truth on a live VistA.
+"RTN","VWEBA",131,0)
+	if $data(^VWEB("rtcfg",name)) quit ^VWEB("rtcfg",name)
+"RTN","VWEBA",132,0)
+	if '$$hasXpar() quit default
+"RTN","VWEBA",133,0)
+	quit $$get^VWEBCFG(name,default)
+"RTN","VWEBA",134,0)
+	;
+"RTN","VWEBA",135,0)
+hasXpar()	; 1 iff Kernel XPAR ($$GET^XPAR) is present (a live VistA with XPAR).
+"RTN","VWEBA",136,0)
+	; doc: @internal
+"RTN","VWEBA",137,0)
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+"RTN","VWEBA",138,0)
+	; $text-probe only (never invoked here — VWEBCFG/VSLCFG own the call); the @icr
+"RTN","VWEBA",139,0)
+	; records the L4 symbol dependency this runtime gate keys on.
+"RTN","VWEBA",140,0)
+	quit $text(GET^XPAR)'=""
+"RTN","VWEBA",141,0)
+	;
+"RTN","VWEBA",142,0)
+hasVista()	; 1 iff the VistA identity surface (FileMan DBS $$GET1^DIQ) is present.
+"RTN","VWEBA",143,0)
+	; doc: @internal
+"RTN","VWEBA",144,0)
+	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
+"RTN","VWEBA",145,0)
+	; $text-probe only (never invoked here — VSLSEC/VSLFS own the call); the @icr
+"RTN","VWEBA",146,0)
+	; (notional DBS — no numeric DBIA in the gold corpus) records the dependency.
+"RTN","VWEBA",147,0)
+	quit $text(GET1^DIQ)'=""
+"RTN","VWEBA",148,0)
+	;
+"RTN","VWEBA",149,0)
+deny401(RSP,CTX,reason,hadtoken)	; Build a 401 (FHIR OperationOutcome + WWW-Authenticate) and stop the chain.
+"RTN","VWEBA",150,0)
+	; doc: @internal
+"RTN","VWEBA",151,0)
+	do oo(.RSP,401,"security",reason)
+"RTN","VWEBA",152,0)
+	set RSP("hdr","WWW-Authenticate")=$select(+$get(hadtoken):"Bearer error=""invalid_token""",1:"Bearer realm=""vista""")
+"RTN","VWEBA",153,0)
+	set CTX("stop")=1
+"RTN","VWEBA",154,0)
+	quit
+"RTN","VWEBA",155,0)
+	;
+"RTN","VWEBA",156,0)
+deny403(RSP,CTX,reason)	; Build a 403 (authenticated but not provisioned) and stop the chain.
+"RTN","VWEBA",157,0)
+	; doc: @internal
+"RTN","VWEBA",158,0)
+	do oo(.RSP,403,"forbidden",reason)
+"RTN","VWEBA",159,0)
+	set CTX("stop")=1
+"RTN","VWEBA",160,0)
+	quit
+"RTN","VWEBA",161,0)
+	;
+"RTN","VWEBA",162,0)
+oo(RSP,status,code,diag)	; Build a FHIR R4 OperationOutcome response (status + json body).
+"RTN","VWEBA",163,0)
+	; doc: @internal
+"RTN","VWEBA",164,0)
+	kill RSP
+"RTN","VWEBA",165,0)
+	set RSP("status")=status
+"RTN","VWEBA",166,0)
+	set RSP("json")="o"
+"RTN","VWEBA",167,0)
+	set RSP("json","resourceType")="s:OperationOutcome"
+"RTN","VWEBA",168,0)
+	set RSP("json","issue")="a"
+"RTN","VWEBA",169,0)
+	set RSP("json","issue",1)="o"
+"RTN","VWEBA",170,0)
+	set RSP("json","issue",1,"severity")="s:error"
+"RTN","VWEBA",171,0)
+	set RSP("json","issue",1,"code")="s:"_code
+"RTN","VWEBA",172,0)
+	set RSP("json","issue",1,"diagnostics")="s:"_diag
+"RTN","VWEBA",173,0)
+	quit
+"RTN","VWEBA",174,0)
+	;
+"RTN","VWEBA",175,0)
+seterr(msg)	; Stash the auth-failure reason for $$lastError.
+"RTN","VWEBA",176,0)
+	; doc: @internal
+"RTN","VWEBA",177,0)
+	set ^TMP($job,"vweba","err")=msg
+"RTN","VWEBA",178,0)
+	quit
 "RTN","VWEBCFG")
 0^58^0^0
 "RTN","VWEBCFG",1,0)
@@ -633,7 +1015,7 @@ lastError()	; The detail stashed behind the last raised error (or "").
 "RTN","VWEBL",102,0)
 	quit $get(^TMP($job,"vwebl","err"))
 "RTN","VWEBR")
-0^145^0^0
+0^149^0^0
 "RTN","VWEBR",1,0)
 VWEBR	; v-web — route table + FHIR /Patient/:id handler (M6.4, spec §3/§6).
 "RTN","VWEBR",2,0)
@@ -713,216 +1095,224 @@ routes(SRV)	; Build the route table: GET /healthz (kept) + GET /Patient/:id (new
 "RTN","VWEBR",39,0)
 	; probe, /Patient/:id is the first FileMan-backed route.
 "RTN","VWEBR",40,0)
-	do route^STDHTTPD(.SRV,"GET","/healthz","health^VWEBL")
+	; Auth (M6.5): register VWEBA's middleware FIRST so it runs ahead of every
 "RTN","VWEBR",41,0)
-	do route^STDHTTPD(.SRV,"GET","/Patient/:id","getPatient^VWEBR")
+	; handler; it gates protected routes and lets the open path (/healthz) through.
 "RTN","VWEBR",42,0)
-	quit
+	; getPatient stays byte-for-byte auth-agnostic (identity lives in the middleware).
 "RTN","VWEBR",43,0)
-	;
+	do register^VWEBA(.SRV)
 "RTN","VWEBR",44,0)
-getPatient(REQ,RSP)	; GET /Patient/:id -> a minimal FHIR R4 Patient read from #2 via VSLFS.
+	do route^STDHTTPD(.SRV,"GET","/healthz","health^VWEBL")
 "RTN","VWEBR",45,0)
-	; doc: @param REQ  array  by-ref parsed request (REQ("param","id") = the DFN)
+	do route^STDHTTPD(.SRV,"GET","/Patient/:id","getPatient^VWEBR")
 "RTN","VWEBR",46,0)
-	; doc: @param RSP  array  by-ref response: status + the json body (STDHTTPD
+	quit
 "RTN","VWEBR",47,0)
-	; doc:                    serializes RSP("json") with STDJSON and sets Content-Type)
+	;
 "RTN","VWEBR",48,0)
-	; Auth-agnostic (M6.5 adds auth): reads REQ, writes RSP. Non-numeric id -> 400;
+getPatient(REQ,RSP)	; GET /Patient/:id -> a minimal FHIR R4 Patient read from #2 via VSLFS.
 "RTN","VWEBR",49,0)
-	; absent DFN -> 404; otherwise the Patient resource at 200.
+	; doc: @param REQ  array  by-ref parsed request (REQ("param","id") = the DFN)
 "RTN","VWEBR",50,0)
-	new id,iens,name,family,given,sex,gender,dob,bd
+	; doc: @param RSP  array  by-ref response: status + the json body (STDHTTPD
 "RTN","VWEBR",51,0)
-	set id=$get(REQ("param","id"))
+	; doc:                    serializes RSP("json") with STDJSON and sets Content-Type)
 "RTN","VWEBR",52,0)
-	; 400 before any FileMan touch (so this arm runs on a bare engine too)
+	; Auth-agnostic (M6.5 adds auth): reads REQ, writes RSP. Non-numeric id -> 400;
 "RTN","VWEBR",53,0)
-	if id'?1.N do fail(.RSP,400,"invalid","id must be a numeric DFN") quit
+	; absent DFN -> 404; otherwise the Patient resource at 200.
 "RTN","VWEBR",54,0)
-	set iens=id_","
+	new id,iens,name,family,given,sex,gender,dob,bd
 "RTN","VWEBR",55,0)
-	if '$$exists^VSLFS(2,iens) do fail(.RSP,404,"not-found","no PATIENT (#2) record for DFN "_id) quit
+	set id=$get(REQ("param","id"))
 "RTN","VWEBR",56,0)
-	; read the #2 fields through VSLFS (FileMan DBS, external values)
+	; 400 before any FileMan touch (so this arm runs on a bare engine too)
 "RTN","VWEBR",57,0)
-	set name=$$get^VSLFS(2,iens,".01","")
+	if id'?1.N do fail(.RSP,400,"invalid","id must be a numeric DFN") quit
 "RTN","VWEBR",58,0)
-	set sex=$$get^VSLFS(2,iens,".02","")
+	set iens=id_","
 "RTN","VWEBR",59,0)
-	set dob=$$get^VSLFS(2,iens,".03","")
+	if '$$exists^VSLFS(2,iens) do fail(.RSP,404,"not-found","no PATIENT (#2) record for DFN "_id) quit
 "RTN","VWEBR",60,0)
-	; --- build the minimal FHIR R4 Patient directly in the RSP("json") tree
+	; read the #2 fields through VSLFS (FileMan DBS, external values)
 "RTN","VWEBR",61,0)
-	; (STDJSON typed-node convention: "o" object, "a" array, "s:" string) ---
+	set name=$$get^VSLFS(2,iens,".01","")
 "RTN","VWEBR",62,0)
-	kill RSP
+	set sex=$$get^VSLFS(2,iens,".02","")
 "RTN","VWEBR",63,0)
-	set RSP("json")="o"
+	set dob=$$get^VSLFS(2,iens,".03","")
 "RTN","VWEBR",64,0)
-	set RSP("json","resourceType")="s:Patient"
+	; --- build the minimal FHIR R4 Patient directly in the RSP("json") tree
 "RTN","VWEBR",65,0)
-	set RSP("json","id")="s:"_id
+	; (STDJSON typed-node convention: "o" object, "a" array, "s:" string) ---
 "RTN","VWEBR",66,0)
-	; identifier: the DFN as an MRN (type MR)
-"RTN","VWEBR",67,0)
-	set RSP("json","identifier")="a"
-"RTN","VWEBR",68,0)
-	set RSP("json","identifier",1)="o"
-"RTN","VWEBR",69,0)
-	set RSP("json","identifier",1,"type")="o"
-"RTN","VWEBR",70,0)
-	set RSP("json","identifier",1,"type","coding")="a"
-"RTN","VWEBR",71,0)
-	set RSP("json","identifier",1,"type","coding",1)="o"
-"RTN","VWEBR",72,0)
-	set RSP("json","identifier",1,"type","coding",1,"system")="s:http://terminology.hl7.org/CodeSystem/v2-0203"
-"RTN","VWEBR",73,0)
-	set RSP("json","identifier",1,"type","coding",1,"code")="s:MR"
-"RTN","VWEBR",74,0)
-	set RSP("json","identifier",1,"system")="s:urn:vista:dfn"
-"RTN","VWEBR",75,0)
-	set RSP("json","identifier",1,"value")="s:"_id
-"RTN","VWEBR",76,0)
-	; name (always emit a HumanName element; family/given only when present)
-"RTN","VWEBR",77,0)
-	do splitName(name,.family,.given)
-"RTN","VWEBR",78,0)
-	set RSP("json","name")="a"
-"RTN","VWEBR",79,0)
-	set RSP("json","name",1)="o"
-"RTN","VWEBR",80,0)
-	if family'="" set RSP("json","name",1,"family")="s:"_family
-"RTN","VWEBR",81,0)
-	if given'="" set RSP("json","name",1,"given")="a",RSP("json","name",1,"given",1)="s:"_given
-"RTN","VWEBR",82,0)
-	; gender / birthDate (omit when unmappable rather than emit an invalid value)
-"RTN","VWEBR",83,0)
-	set gender=$$gender(sex)
-"RTN","VWEBR",84,0)
-	if gender'="" set RSP("json","gender")="s:"_gender
-"RTN","VWEBR",85,0)
-	set bd=$$fmToIso(dob)
-"RTN","VWEBR",86,0)
-	if bd'="" set RSP("json","birthDate")="s:"_bd
-"RTN","VWEBR",87,0)
-	set RSP("status")=200
-"RTN","VWEBR",88,0)
-	quit
-"RTN","VWEBR",89,0)
-	;
-"RTN","VWEBR",90,0)
-	; ---------- internal helpers (pure-M, dual-engine) ----------
-"RTN","VWEBR",91,0)
-	;
-"RTN","VWEBR",92,0)
-fail(RSP,status,code,diag)	; (private) build a FHIR OperationOutcome error response.
-"RTN","VWEBR",93,0)
-	; doc: @internal
-"RTN","VWEBR",94,0)
 	kill RSP
-"RTN","VWEBR",95,0)
-	set RSP("status")=status
-"RTN","VWEBR",96,0)
+"RTN","VWEBR",67,0)
 	set RSP("json")="o"
+"RTN","VWEBR",68,0)
+	set RSP("json","resourceType")="s:Patient"
+"RTN","VWEBR",69,0)
+	set RSP("json","id")="s:"_id
+"RTN","VWEBR",70,0)
+	; identifier: the DFN as an MRN (type MR)
+"RTN","VWEBR",71,0)
+	set RSP("json","identifier")="a"
+"RTN","VWEBR",72,0)
+	set RSP("json","identifier",1)="o"
+"RTN","VWEBR",73,0)
+	set RSP("json","identifier",1,"type")="o"
+"RTN","VWEBR",74,0)
+	set RSP("json","identifier",1,"type","coding")="a"
+"RTN","VWEBR",75,0)
+	set RSP("json","identifier",1,"type","coding",1)="o"
+"RTN","VWEBR",76,0)
+	set RSP("json","identifier",1,"type","coding",1,"system")="s:http://terminology.hl7.org/CodeSystem/v2-0203"
+"RTN","VWEBR",77,0)
+	set RSP("json","identifier",1,"type","coding",1,"code")="s:MR"
+"RTN","VWEBR",78,0)
+	set RSP("json","identifier",1,"system")="s:urn:vista:dfn"
+"RTN","VWEBR",79,0)
+	set RSP("json","identifier",1,"value")="s:"_id
+"RTN","VWEBR",80,0)
+	; name (always emit a HumanName element; family/given only when present)
+"RTN","VWEBR",81,0)
+	do splitName(name,.family,.given)
+"RTN","VWEBR",82,0)
+	set RSP("json","name")="a"
+"RTN","VWEBR",83,0)
+	set RSP("json","name",1)="o"
+"RTN","VWEBR",84,0)
+	if family'="" set RSP("json","name",1,"family")="s:"_family
+"RTN","VWEBR",85,0)
+	if given'="" set RSP("json","name",1,"given")="a",RSP("json","name",1,"given",1)="s:"_given
+"RTN","VWEBR",86,0)
+	; gender / birthDate (omit when unmappable rather than emit an invalid value)
+"RTN","VWEBR",87,0)
+	set gender=$$gender(sex)
+"RTN","VWEBR",88,0)
+	if gender'="" set RSP("json","gender")="s:"_gender
+"RTN","VWEBR",89,0)
+	set bd=$$fmToIso(dob)
+"RTN","VWEBR",90,0)
+	if bd'="" set RSP("json","birthDate")="s:"_bd
+"RTN","VWEBR",91,0)
+	set RSP("status")=200
+"RTN","VWEBR",92,0)
+	quit
+"RTN","VWEBR",93,0)
+	;
+"RTN","VWEBR",94,0)
+	; ---------- internal helpers (pure-M, dual-engine) ----------
+"RTN","VWEBR",95,0)
+	;
+"RTN","VWEBR",96,0)
+fail(RSP,status,code,diag)	; (private) build a FHIR OperationOutcome error response.
 "RTN","VWEBR",97,0)
-	set RSP("json","resourceType")="s:OperationOutcome"
+	; doc: @internal
 "RTN","VWEBR",98,0)
-	set RSP("json","issue")="a"
+	kill RSP
 "RTN","VWEBR",99,0)
-	set RSP("json","issue",1)="o"
+	set RSP("status")=status
 "RTN","VWEBR",100,0)
-	set RSP("json","issue",1,"severity")="s:error"
+	set RSP("json")="o"
 "RTN","VWEBR",101,0)
-	set RSP("json","issue",1,"code")="s:"_code
+	set RSP("json","resourceType")="s:OperationOutcome"
 "RTN","VWEBR",102,0)
-	set RSP("json","issue",1,"diagnostics")="s:"_diag
+	set RSP("json","issue")="a"
 "RTN","VWEBR",103,0)
-	quit
+	set RSP("json","issue",1)="o"
 "RTN","VWEBR",104,0)
-	;
+	set RSP("json","issue",1,"severity")="s:error"
 "RTN","VWEBR",105,0)
-splitName(name,family,given)	; (private) split a #2 NAME ("LAST,FIRST MIDDLE") into family + first given.
+	set RSP("json","issue",1,"code")="s:"_code
 "RTN","VWEBR",106,0)
-	; doc: @internal
+	set RSP("json","issue",1,"diagnostics")="s:"_diag
 "RTN","VWEBR",107,0)
-	set family=$$trim^STDSTR($piece(name,",",1))
-"RTN","VWEBR",108,0)
-	set given=$$trim^STDSTR($piece($piece(name,",",2,999)," ",1))
-"RTN","VWEBR",109,0)
 	quit
+"RTN","VWEBR",108,0)
+	;
+"RTN","VWEBR",109,0)
+splitName(name,family,given)	; (private) split a #2 NAME ("LAST,FIRST MIDDLE") into family + first given.
 "RTN","VWEBR",110,0)
-	;
+	; doc: @internal
 "RTN","VWEBR",111,0)
-gender(sex)	; (private) map FileMan external SEX (MALE/FEMALE) to a FHIR gender code.
+	set family=$$trim^STDSTR($piece(name,",",1))
 "RTN","VWEBR",112,0)
-	; doc: @internal
+	set given=$$trim^STDSTR($piece($piece(name,",",2,999)," ",1))
 "RTN","VWEBR",113,0)
-	if sex="MALE" quit "male"
+	quit
 "RTN","VWEBR",114,0)
-	if sex="FEMALE" quit "female"
+	;
 "RTN","VWEBR",115,0)
-	if sex="" quit ""
+gender(sex)	; (private) map FileMan external SEX (MALE/FEMALE) to a FHIR gender code.
 "RTN","VWEBR",116,0)
-	quit "other"
+	; doc: @internal
 "RTN","VWEBR",117,0)
-	;
+	if sex="MALE" quit "male"
 "RTN","VWEBR",118,0)
-fmToIso(ext)	; (private) FileMan external date ("JAN 01, 1950") -> FHIR YYYY[-MM[-DD]].
+	if sex="FEMALE" quit "female"
 "RTN","VWEBR",119,0)
-	; doc: @internal  Tokenizes on spaces (commas dropped); finds a 4-digit year,
+	if sex="" quit ""
 "RTN","VWEBR",120,0)
-	; doc: a 3-letter month, and a 1-2 digit day in any order. Returns "" when no
+	quit "other"
 "RTN","VWEBR",121,0)
-	; doc: year is recoverable (so birthDate is omitted rather than invalid).
+	;
 "RTN","VWEBR",122,0)
-	new s,i,tok,yr,mon,day,m
+fmToIso(ext)	; (private) FileMan external date ("JAN 01, 1950") -> FHIR YYYY[-MM[-DD]].
 "RTN","VWEBR",123,0)
-	set s=$translate($get(ext),",",""),yr="",mon="",day=""
+	; doc: @internal  Tokenizes on spaces (commas dropped); finds a 4-digit year,
 "RTN","VWEBR",124,0)
-	for i=1:1:$length(s," ") do
+	; doc: a 3-letter month, and a 1-2 digit day in any order. Returns "" when no
 "RTN","VWEBR",125,0)
-	. set tok=$piece(s," ",i)
+	; doc: year is recoverable (so birthDate is omitted rather than invalid).
 "RTN","VWEBR",126,0)
-	. if tok="" quit
+	new s,i,tok,yr,mon,day,m
 "RTN","VWEBR",127,0)
-	. if (tok?4N),yr="" set yr=tok quit
+	set s=$translate($get(ext),",",""),yr="",mon="",day=""
 "RTN","VWEBR",128,0)
-	. if (tok?1.2N),day="" set day=tok quit
+	for i=1:1:$length(s," ") do
 "RTN","VWEBR",129,0)
-	. if mon="" set m=$$monNum(tok) set:m>0 mon=m
+	. set tok=$piece(s," ",i)
 "RTN","VWEBR",130,0)
-	if yr="" quit ""
+	. if tok="" quit
 "RTN","VWEBR",131,0)
-	if mon="" quit yr
+	. if (tok?4N),yr="" set yr=tok quit
 "RTN","VWEBR",132,0)
-	if day="" quit yr_"-"_$$pad2(mon)
+	. if (tok?1.2N),day="" set day=tok quit
 "RTN","VWEBR",133,0)
-	quit yr_"-"_$$pad2(mon)_"-"_$$pad2(day)
+	. if mon="" set m=$$monNum(tok) set:m>0 mon=m
 "RTN","VWEBR",134,0)
-	;
+	if yr="" quit ""
 "RTN","VWEBR",135,0)
-monNum(tok)	; (private) 3-letter month abbreviation -> 1..12, else 0.
+	if mon="" quit yr
 "RTN","VWEBR",136,0)
-	; doc: @internal
+	if day="" quit yr_"-"_$$pad2(mon)
 "RTN","VWEBR",137,0)
-	new p
+	quit yr_"-"_$$pad2(mon)_"-"_$$pad2(day)
 "RTN","VWEBR",138,0)
-	set p=$find("JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC",tok)
-"RTN","VWEBR",139,0)
-	if 'p quit 0
-"RTN","VWEBR",140,0)
-	if (p-4)#3 quit 0
-"RTN","VWEBR",141,0)
-	quit ((p-4)/3)+1
-"RTN","VWEBR",142,0)
 	;
-"RTN","VWEBR",143,0)
-pad2(n)	; (private) left-pad an integer to 2 digits.
-"RTN","VWEBR",144,0)
+"RTN","VWEBR",139,0)
+monNum(tok)	; (private) 3-letter month abbreviation -> 1..12, else 0.
+"RTN","VWEBR",140,0)
 	; doc: @internal
+"RTN","VWEBR",141,0)
+	new p
+"RTN","VWEBR",142,0)
+	set p=$find("JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC",tok)
+"RTN","VWEBR",143,0)
+	if 'p quit 0
+"RTN","VWEBR",144,0)
+	if (p-4)#3 quit 0
 "RTN","VWEBR",145,0)
+	quit ((p-4)/3)+1
+"RTN","VWEBR",146,0)
+	;
+"RTN","VWEBR",147,0)
+pad2(n)	; (private) left-pad an integer to 2 digits.
+"RTN","VWEBR",148,0)
+	; doc: @internal
+"RTN","VWEBR",149,0)
 	quit $extract("0"_n,$length("0"_n)-1,$length("0"_n))
 "ORD",1,8989.51)
 8989.51;1;1;;;;;;;
@@ -931,9 +1321,9 @@ PARAMETER DEFINITION
 "KRN",8989.51,1,-1)
 0
 "KRN",8989.51,1,0)
-VWEB LISTEN PORT^VWEB inbound listener TCP port (read by VWEBL via $$port^VWEBCFG at SYS)^
+VWEB AUTH PROVIDER^VWEB auth provider: jwt (default). Future: introspect / saml (read via VWEBA $$cfg)^
 "KRN",8989.51,1,1)
-N^^
+F^^
 "KRN",8989.51,1,30,0)
 ^8989.513I^1^1
 "KRN",8989.51,1,30,1,0)
@@ -943,7 +1333,7 @@ N^^
 "KRN",8989.51,2,-1)
 0
 "KRN",8989.51,2,0)
-VWEB TLS SERVER CONFIG^VWEB named server TLS config (operator-provisioned; empty = HTTP-first)^
+VWEB AUTH JWT KEY^VWEB HS256 JWT verify key (the shared secret; empty = auth fail-closed)^
 "KRN",8989.51,2,1)
 F^^
 "KRN",8989.51,2,30,0)
@@ -955,9 +1345,9 @@ F^^
 "KRN",8989.51,3,-1)
 0
 "KRN",8989.51,3,0)
-VWEB IDLE TIMEOUT^VWEB keep-alive idle seconds (read by VWEBL via $$idleTimeout^VWEBCFG)^
+VWEB AUTH ISSUER^VWEB required token issuer (iss); empty = not enforced^
 "KRN",8989.51,3,1)
-N^^
+F^^
 "KRN",8989.51,3,30,0)
 ^8989.513I^1^1
 "KRN",8989.51,3,30,1,0)
@@ -967,9 +1357,9 @@ N^^
 "KRN",8989.51,4,-1)
 0
 "KRN",8989.51,4,0)
-VWEB MAX BODY^VWEB maximum inbound request body bytes (read via $$maxBody^VWEBCFG)^
+VWEB AUTH AUDIENCE^VWEB required token audience (aud); empty = not enforced^
 "KRN",8989.51,4,1)
-N^^
+F^^
 "KRN",8989.51,4,30,0)
 ^8989.513I^1^1
 "KRN",8989.51,4,30,1,0)
@@ -979,14 +1369,86 @@ N^^
 "KRN",8989.51,5,-1)
 0
 "KRN",8989.51,5,0)
-VWEB MAX WORKERS^VWEB concurrency cap (1 = serial, the v0.1 default; read via $$maxWorkers^VWEBCFG)^
+VWEB AUTH SUBJECT CLAIM^VWEB token claim carrying the principal (default sub; read via VWEBA $$cfg)^
 "KRN",8989.51,5,1)
-N^^
+F^^
 "KRN",8989.51,5,30,0)
 ^8989.513I^1^1
 "KRN",8989.51,5,30,1,0)
 1^4.2
 "KRN",8989.51,5,30,"B",1,1)
+
+"KRN",8989.51,6,-1)
+0
+"KRN",8989.51,6,0)
+VWEB AUTH IDENTITY MAP^VWEB subject->#200 map: secid (EN1^XUPSQRY, default) | ien (subject is a #200 IEN)^
+"KRN",8989.51,6,1)
+F^^
+"KRN",8989.51,6,30,0)
+^8989.513I^1^1
+"KRN",8989.51,6,30,1,0)
+1^4.2
+"KRN",8989.51,6,30,"B",1,1)
+
+"KRN",8989.51,7,-1)
+0
+"KRN",8989.51,7,0)
+VWEB LISTEN PORT^VWEB inbound listener TCP port (read by VWEBL via $$port^VWEBCFG at SYS)^
+"KRN",8989.51,7,1)
+N^^
+"KRN",8989.51,7,30,0)
+^8989.513I^1^1
+"KRN",8989.51,7,30,1,0)
+1^4.2
+"KRN",8989.51,7,30,"B",1,1)
+
+"KRN",8989.51,8,-1)
+0
+"KRN",8989.51,8,0)
+VWEB TLS SERVER CONFIG^VWEB named server TLS config (operator-provisioned; empty = HTTP-first)^
+"KRN",8989.51,8,1)
+F^^
+"KRN",8989.51,8,30,0)
+^8989.513I^1^1
+"KRN",8989.51,8,30,1,0)
+1^4.2
+"KRN",8989.51,8,30,"B",1,1)
+
+"KRN",8989.51,9,-1)
+0
+"KRN",8989.51,9,0)
+VWEB IDLE TIMEOUT^VWEB keep-alive idle seconds (read by VWEBL via $$idleTimeout^VWEBCFG)^
+"KRN",8989.51,9,1)
+N^^
+"KRN",8989.51,9,30,0)
+^8989.513I^1^1
+"KRN",8989.51,9,30,1,0)
+1^4.2
+"KRN",8989.51,9,30,"B",1,1)
+
+"KRN",8989.51,10,-1)
+0
+"KRN",8989.51,10,0)
+VWEB MAX BODY^VWEB maximum inbound request body bytes (read via $$maxBody^VWEBCFG)^
+"KRN",8989.51,10,1)
+N^^
+"KRN",8989.51,10,30,0)
+^8989.513I^1^1
+"KRN",8989.51,10,30,1,0)
+1^4.2
+"KRN",8989.51,10,30,"B",1,1)
+
+"KRN",8989.51,11,-1)
+0
+"KRN",8989.51,11,0)
+VWEB MAX WORKERS^VWEB concurrency cap (1 = serial, the v0.1 default; read via $$maxWorkers^VWEBCFG)^
+"KRN",8989.51,11,1)
+N^^
+"KRN",8989.51,11,30,0)
+^8989.513I^1^1
+"KRN",8989.51,11,30,1,0)
+1^4.2
+"KRN",8989.51,11,30,"B",1,1)
 
 "MBREQ")
 2

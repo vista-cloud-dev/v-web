@@ -1,1 +1,24 @@
-{}
+{
+  "VWEBA": [
+    {
+      "call": "$$GET^XPAR",
+      "custodian": "XU",
+      "icr": 2263,
+      "source": {
+        "anchor": "getxpar-return-an-instance-of-a-parameter",
+        "doc_key": "XU/krn_8_0_dg_toolkit_ug"
+      },
+      "status": "Supported"
+    },
+    {
+      "call": "$$GET1^DIQ",
+      "custodian": "DI",
+      "icr": "DBS",
+      "source": {
+        "anchor": "get1diq-data-retriever-single-field",
+        "doc_key": "DI/fm22_2dg"
+      },
+      "status": "Supported"
+    }
+  ]
+}

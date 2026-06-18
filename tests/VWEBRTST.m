@@ -40,6 +40,15 @@ VWEBRTST	; v-web — VWEBR (router + FHIR /Patient/:id handler) suite.
 hasFileMan()	; 1 iff the FileMan DBS API ($$GET1^DIQ) is present (a live VistA).
 	quit $text(GET1^DIQ)'=""
 	;
+routesNoAuth(SRV)	; The real route table with the auth middleware stripped.
+	; M6.5 made routes^VWEBR register VWEBA's auth middleware, so /Patient/:id is
+	; now protected. VWEBRTST tests the HANDLER + ROUTING in isolation (auth is
+	; VWEBATST's job), so it drives the same table with the middleware chain
+	; removed. End-to-end auth on the route is proven in VWEBATST.
+	do routes^VWEBR(.SRV)
+	kill SRV("mw")
+	quit
+	;
 rawByteSafe()	; 1 iff raw sockets preserve CRLF bytes end-to-end (HTTP framing needs it).
 	; Same live regression guard VWEBLTST carries: YDB always; IRIS since MSL
 	; v0.12.1 (STDNET readIris CR-termination fix). Auto-skips if a future engine
@@ -119,7 +128,7 @@ tBirthDateMapping(pass,fail)	;@TEST "FileMan external dates convert to FHIR YYYY
 	;
 tBadIdIs400(pass,fail)	;@TEST "a non-numeric id -> 400 (FHIR OperationOutcome), no FileMan touched (runs on a bare engine)"
 	new SRV,REQ,RSP,st
-	do routes^VWEBR(.SRV)
+	do routesNoAuth(.SRV)
 	set REQ("method")="GET",REQ("path")="/Patient/abc"
 	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
 	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),400,"status 400 for a non-numeric DFN")
@@ -132,7 +141,7 @@ tBadIdOverSocket(pass,fail)	;@TEST "the /Patient route is served over a real soc
 	if '$$rawByteSafe() do true^STDASSERT(.pass,.fail,1,"raw CRLF not preserved here - socket serve skipped (regression guard)") quit
 	set cr=$char(13,10)
 	set req="GET /Patient/abc HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
-	do routes^VWEBR(.SRV)
+	do routesNoAuth(.SRV)
 	set srv=$$listen^VWEBIO(0),port=$$boundport^VWEBIO(srv)
 	set cli=$$connect^STDNET("127.0.0.1",port,5)
 	do true^STDASSERT(.pass,.fail,$$write^STDNET(cli,req),"client wrote GET /Patient/abc")
@@ -150,7 +159,7 @@ tUnknownDfnIs404(pass,fail)	;@TEST "an unknown DFN -> 404 (FHIR OperationOutcome
 	if '$$hasFileMan() do true^STDASSERT(.pass,.fail,1,"FileMan ($$GET1^DIQ) absent (bare engine) - 404 verified on vehu/foia") quit
 	set dfn=$$freeDfn()
 	if dfn="" do true^STDASSERT(.pass,.fail,1,"no free DFN found in the probe range - skipped") quit
-	do routes^VWEBR(.SRV)
+	do routesNoAuth(.SRV)
 	set REQ("method")="GET",REQ("path")="/Patient/"_dfn
 	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
 	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),404,"status 404 for an absent DFN")
@@ -162,7 +171,7 @@ tKnownPatientIs200Fhir(pass,fail)	;@TEST "a known DFN -> 200 minimal FHIR R4 Pat
 	if '$$hasFileMan() do true^STDASSERT(.pass,.fail,1,"FileMan absent (bare engine) - 200 FHIR Patient verified on vehu/foia") quit
 	set dfn=$$existingDfn()
 	if dfn="" do true^STDASSERT(.pass,.fail,1,"PATIENT (#2) empty/unpopulated in DFN 1..5000 (e.g. a scrubbed FOIA build) - real-read verified on a populated system (vehu)") quit
-	do routes^VWEBR(.SRV)
+	do routesNoAuth(.SRV)
 	set REQ("method")="GET",REQ("path")="/Patient/"_dfn
 	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
 	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),200,"status 200 for a known DFN")
@@ -185,7 +194,7 @@ tKnownPatientOverSocket(pass,fail)	;@TEST "a known DFN -> 200 FHIR Patient over 
 	if dfn="" do true^STDASSERT(.pass,.fail,1,"PATIENT (#2) empty/unpopulated in DFN 1..5000 (e.g. a scrubbed FOIA build) - real-read verified on a populated system (vehu)") quit
 	set cr=$char(13,10)
 	set req="GET /Patient/"_dfn_" HTTP/1.1"_cr_"Host: x"_cr_"Connection: close"_cr_cr
-	do routes^VWEBR(.SRV)
+	do routesNoAuth(.SRV)
 	set srv=$$listen^VWEBIO(0),port=$$boundport^VWEBIO(srv)
 	set cli=$$connect^STDNET("127.0.0.1",port,5)
 	set n=$$write^STDNET(cli,req)
