@@ -93,16 +93,17 @@ existingIen()	; A #200 IEN that resolves to a real user (read-only), or "".
 	;
 	; ---------- bare-engine: the wire-level composition ----------
 	;
-tStackComposes(pass,fail)	;@TEST "the capstone wiring composes: one table carries the auth middleware + /healthz + /Patient/:id"
+tStackComposes(pass,fail)	;@TEST "the capstone wiring composes: one table carries the auth middleware + /healthz + /Patient/:id + /traffic/health"
 	new SRV,pats
 	do routes^VWEBR(.SRV)
 	; STDHTTPD keeps an INDEXED table: SRV("mw")=count, SRV("route")=count,
 	; SRV("route",n,"pattern"). Assert the composition by count + pattern presence.
 	do true^STDASSERT(.pass,.fail,+$get(SRV("mw"))'<1,"the auth middleware is registered on the table")
-	do eq^STDASSERT(.pass,.fail,+$get(SRV("route")),2,"two routes are registered (/healthz + /Patient/:id)")
+	do eq^STDASSERT(.pass,.fail,+$get(SRV("route")),3,"three routes are registered (/healthz + /Patient/:id + /traffic/health)")
 	set pats=$$routePats(.SRV)
 	do true^STDASSERT(.pass,.fail,pats["|/healthz|","GET /healthz is routed (the open liveness probe)")
 	do true^STDASSERT(.pass,.fail,pats["|/Patient/:id|","GET /Patient/:id is routed (the protected FHIR route)")
+	do true^STDASSERT(.pass,.fail,pats["|/traffic/health|","GET /traffic/health is routed (the protected tap console)")
 	quit
 	;
 routePats(SRV)	; (helper) "|"-delimited list of the registered route patterns.

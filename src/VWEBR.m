@@ -28,12 +28,13 @@ VWEBR	; v-web — route table + FHIR /Patient/:id handler (M6.4, spec §3/§6).
 	;  D^DIQ external date "JAN 01, 1998"; $$GET1^DIQ default = external values.)
 	;
 	; Public:
-	;   routes(.SRV)          — register GET /healthz + GET /Patient/:id
+	;   routes(.SRV)          — register GET /healthz + /Patient/:id, and delegate
+	;                           the traffic-console routes to routes^VWEBT
 	;   getPatient(.REQ,.RSP) — the /Patient/:id handler
 	;
 	quit
 	;
-routes(SRV)	; Build the route table: GET /healthz (kept) + GET /Patient/:id (new).
+routes(SRV)	; Build the route table: /healthz + /Patient/:id + the traffic console.
 	; doc: @param SRV  array  by-ref route table (populated by side-effect)
 	; First-registered wins on overlap (STDHTTPD §6); /healthz stays the liveness
 	; probe, /Patient/:id is the first FileMan-backed route.
@@ -43,6 +44,7 @@ routes(SRV)	; Build the route table: GET /healthz (kept) + GET /Patient/:id (new
 	do register^VWEBA(.SRV)
 	do route^STDHTTPD(.SRV,"GET","/healthz","health^VWEBL")
 	do route^STDHTTPD(.SRV,"GET","/Patient/:id","getPatient^VWEBR")
+	do routes^VWEBT(.SRV)
 	quit
 	;
 getPatient(REQ,RSP)	; GET /Patient/:id -> a minimal FHIR R4 Patient read from #2 via VSLFS.

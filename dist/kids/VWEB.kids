@@ -69,7 +69,7 @@ VSL*1.0*2^2
 "BLD",1,"REQB","B","VSL*1.0*2",2)
 
 "RTN")
-6
+7
 "RTN","VWEBA")
 0^178^0^0
 "RTN","VWEBA",1,0)
@@ -1015,7 +1015,7 @@ lastError()	; The detail stashed behind the last raised error (or "").
 "RTN","VWEBL",102,0)
 	quit $get(^TMP($job,"vwebl","err"))
 "RTN","VWEBR")
-0^149^0^0
+0^151^0^0
 "RTN","VWEBR",1,0)
 VWEBR	; v-web — route table + FHIR /Patient/:id handler (M6.4, spec §3/§6).
 "RTN","VWEBR",2,0)
@@ -1077,243 +1077,423 @@ VWEBR	; v-web — route table + FHIR /Patient/:id handler (M6.4, spec §3/§6).
 "RTN","VWEBR",30,0)
 	; Public:
 "RTN","VWEBR",31,0)
-	;   routes(.SRV)          — register GET /healthz + GET /Patient/:id
+	;   routes(.SRV)          — register GET /healthz + /Patient/:id, and delegate
 "RTN","VWEBR",32,0)
-	;   getPatient(.REQ,.RSP) — the /Patient/:id handler
+	;                           the traffic-console routes to routes^VWEBT
 "RTN","VWEBR",33,0)
-	;
+	;   getPatient(.REQ,.RSP) — the /Patient/:id handler
 "RTN","VWEBR",34,0)
-	quit
+	;
 "RTN","VWEBR",35,0)
-	;
+	quit
 "RTN","VWEBR",36,0)
-routes(SRV)	; Build the route table: GET /healthz (kept) + GET /Patient/:id (new).
+	;
 "RTN","VWEBR",37,0)
-	; doc: @param SRV  array  by-ref route table (populated by side-effect)
+routes(SRV)	; Build the route table: /healthz + /Patient/:id + the traffic console.
 "RTN","VWEBR",38,0)
-	; First-registered wins on overlap (STDHTTPD §6); /healthz stays the liveness
+	; doc: @param SRV  array  by-ref route table (populated by side-effect)
 "RTN","VWEBR",39,0)
-	; probe, /Patient/:id is the first FileMan-backed route.
+	; First-registered wins on overlap (STDHTTPD §6); /healthz stays the liveness
 "RTN","VWEBR",40,0)
-	; Auth (M6.5): register VWEBA's middleware FIRST so it runs ahead of every
+	; probe, /Patient/:id is the first FileMan-backed route.
 "RTN","VWEBR",41,0)
-	; handler; it gates protected routes and lets the open path (/healthz) through.
+	; Auth (M6.5): register VWEBA's middleware FIRST so it runs ahead of every
 "RTN","VWEBR",42,0)
-	; getPatient stays byte-for-byte auth-agnostic (identity lives in the middleware).
+	; handler; it gates protected routes and lets the open path (/healthz) through.
 "RTN","VWEBR",43,0)
-	do register^VWEBA(.SRV)
+	; getPatient stays byte-for-byte auth-agnostic (identity lives in the middleware).
 "RTN","VWEBR",44,0)
-	do route^STDHTTPD(.SRV,"GET","/healthz","health^VWEBL")
+	do register^VWEBA(.SRV)
 "RTN","VWEBR",45,0)
-	do route^STDHTTPD(.SRV,"GET","/Patient/:id","getPatient^VWEBR")
+	do route^STDHTTPD(.SRV,"GET","/healthz","health^VWEBL")
 "RTN","VWEBR",46,0)
-	quit
+	do route^STDHTTPD(.SRV,"GET","/Patient/:id","getPatient^VWEBR")
 "RTN","VWEBR",47,0)
-	;
+	do routes^VWEBT(.SRV)
 "RTN","VWEBR",48,0)
-getPatient(REQ,RSP)	; GET /Patient/:id -> a minimal FHIR R4 Patient read from #2 via VSLFS.
-"RTN","VWEBR",49,0)
-	; doc: @param REQ  array  by-ref parsed request (REQ("param","id") = the DFN)
-"RTN","VWEBR",50,0)
-	; doc: @param RSP  array  by-ref response: status + the json body (STDHTTPD
-"RTN","VWEBR",51,0)
-	; doc:                    serializes RSP("json") with STDJSON and sets Content-Type)
-"RTN","VWEBR",52,0)
-	; Auth-agnostic (M6.5 adds auth): reads REQ, writes RSP. Non-numeric id -> 400;
-"RTN","VWEBR",53,0)
-	; absent DFN -> 404; otherwise the Patient resource at 200.
-"RTN","VWEBR",54,0)
-	new id,iens,name,family,given,sex,gender,dob,bd
-"RTN","VWEBR",55,0)
-	set id=$get(REQ("param","id"))
-"RTN","VWEBR",56,0)
-	; 400 before any FileMan touch (so this arm runs on a bare engine too)
-"RTN","VWEBR",57,0)
-	if id'?1.N do fail(.RSP,400,"invalid","id must be a numeric DFN") quit
-"RTN","VWEBR",58,0)
-	set iens=id_","
-"RTN","VWEBR",59,0)
-	if '$$exists^VSLFS(2,iens) do fail(.RSP,404,"not-found","no PATIENT (#2) record for DFN "_id) quit
-"RTN","VWEBR",60,0)
-	; read the #2 fields through VSLFS (FileMan DBS, external values)
-"RTN","VWEBR",61,0)
-	set name=$$get^VSLFS(2,iens,".01","")
-"RTN","VWEBR",62,0)
-	set sex=$$get^VSLFS(2,iens,".02","")
-"RTN","VWEBR",63,0)
-	set dob=$$get^VSLFS(2,iens,".03","")
-"RTN","VWEBR",64,0)
-	; --- build the minimal FHIR R4 Patient directly in the RSP("json") tree
-"RTN","VWEBR",65,0)
-	; (STDJSON typed-node convention: "o" object, "a" array, "s:" string) ---
-"RTN","VWEBR",66,0)
-	kill RSP
-"RTN","VWEBR",67,0)
-	set RSP("json")="o"
-"RTN","VWEBR",68,0)
-	set RSP("json","resourceType")="s:Patient"
-"RTN","VWEBR",69,0)
-	set RSP("json","id")="s:"_id
-"RTN","VWEBR",70,0)
-	; identifier: the DFN as an MRN (type MR)
-"RTN","VWEBR",71,0)
-	set RSP("json","identifier")="a"
-"RTN","VWEBR",72,0)
-	set RSP("json","identifier",1)="o"
-"RTN","VWEBR",73,0)
-	set RSP("json","identifier",1,"type")="o"
-"RTN","VWEBR",74,0)
-	set RSP("json","identifier",1,"type","coding")="a"
-"RTN","VWEBR",75,0)
-	set RSP("json","identifier",1,"type","coding",1)="o"
-"RTN","VWEBR",76,0)
-	set RSP("json","identifier",1,"type","coding",1,"system")="s:http://terminology.hl7.org/CodeSystem/v2-0203"
-"RTN","VWEBR",77,0)
-	set RSP("json","identifier",1,"type","coding",1,"code")="s:MR"
-"RTN","VWEBR",78,0)
-	set RSP("json","identifier",1,"system")="s:urn:vista:dfn"
-"RTN","VWEBR",79,0)
-	set RSP("json","identifier",1,"value")="s:"_id
-"RTN","VWEBR",80,0)
-	; name (always emit a HumanName element; family/given only when present)
-"RTN","VWEBR",81,0)
-	do splitName(name,.family,.given)
-"RTN","VWEBR",82,0)
-	set RSP("json","name")="a"
-"RTN","VWEBR",83,0)
-	set RSP("json","name",1)="o"
-"RTN","VWEBR",84,0)
-	if family'="" set RSP("json","name",1,"family")="s:"_family
-"RTN","VWEBR",85,0)
-	if given'="" set RSP("json","name",1,"given")="a",RSP("json","name",1,"given",1)="s:"_given
-"RTN","VWEBR",86,0)
-	; gender / birthDate (omit when unmappable rather than emit an invalid value)
-"RTN","VWEBR",87,0)
-	set gender=$$gender(sex)
-"RTN","VWEBR",88,0)
-	if gender'="" set RSP("json","gender")="s:"_gender
-"RTN","VWEBR",89,0)
-	set bd=$$fmToIso(dob)
-"RTN","VWEBR",90,0)
-	if bd'="" set RSP("json","birthDate")="s:"_bd
-"RTN","VWEBR",91,0)
-	set RSP("status")=200
-"RTN","VWEBR",92,0)
 	quit
-"RTN","VWEBR",93,0)
+"RTN","VWEBR",49,0)
 	;
+"RTN","VWEBR",50,0)
+getPatient(REQ,RSP)	; GET /Patient/:id -> a minimal FHIR R4 Patient read from #2 via VSLFS.
+"RTN","VWEBR",51,0)
+	; doc: @param REQ  array  by-ref parsed request (REQ("param","id") = the DFN)
+"RTN","VWEBR",52,0)
+	; doc: @param RSP  array  by-ref response: status + the json body (STDHTTPD
+"RTN","VWEBR",53,0)
+	; doc:                    serializes RSP("json") with STDJSON and sets Content-Type)
+"RTN","VWEBR",54,0)
+	; Auth-agnostic (M6.5 adds auth): reads REQ, writes RSP. Non-numeric id -> 400;
+"RTN","VWEBR",55,0)
+	; absent DFN -> 404; otherwise the Patient resource at 200.
+"RTN","VWEBR",56,0)
+	new id,iens,name,family,given,sex,gender,dob,bd
+"RTN","VWEBR",57,0)
+	set id=$get(REQ("param","id"))
+"RTN","VWEBR",58,0)
+	; 400 before any FileMan touch (so this arm runs on a bare engine too)
+"RTN","VWEBR",59,0)
+	if id'?1.N do fail(.RSP,400,"invalid","id must be a numeric DFN") quit
+"RTN","VWEBR",60,0)
+	set iens=id_","
+"RTN","VWEBR",61,0)
+	if '$$exists^VSLFS(2,iens) do fail(.RSP,404,"not-found","no PATIENT (#2) record for DFN "_id) quit
+"RTN","VWEBR",62,0)
+	; read the #2 fields through VSLFS (FileMan DBS, external values)
+"RTN","VWEBR",63,0)
+	set name=$$get^VSLFS(2,iens,".01","")
+"RTN","VWEBR",64,0)
+	set sex=$$get^VSLFS(2,iens,".02","")
+"RTN","VWEBR",65,0)
+	set dob=$$get^VSLFS(2,iens,".03","")
+"RTN","VWEBR",66,0)
+	; --- build the minimal FHIR R4 Patient directly in the RSP("json") tree
+"RTN","VWEBR",67,0)
+	; (STDJSON typed-node convention: "o" object, "a" array, "s:" string) ---
+"RTN","VWEBR",68,0)
+	kill RSP
+"RTN","VWEBR",69,0)
+	set RSP("json")="o"
+"RTN","VWEBR",70,0)
+	set RSP("json","resourceType")="s:Patient"
+"RTN","VWEBR",71,0)
+	set RSP("json","id")="s:"_id
+"RTN","VWEBR",72,0)
+	; identifier: the DFN as an MRN (type MR)
+"RTN","VWEBR",73,0)
+	set RSP("json","identifier")="a"
+"RTN","VWEBR",74,0)
+	set RSP("json","identifier",1)="o"
+"RTN","VWEBR",75,0)
+	set RSP("json","identifier",1,"type")="o"
+"RTN","VWEBR",76,0)
+	set RSP("json","identifier",1,"type","coding")="a"
+"RTN","VWEBR",77,0)
+	set RSP("json","identifier",1,"type","coding",1)="o"
+"RTN","VWEBR",78,0)
+	set RSP("json","identifier",1,"type","coding",1,"system")="s:http://terminology.hl7.org/CodeSystem/v2-0203"
+"RTN","VWEBR",79,0)
+	set RSP("json","identifier",1,"type","coding",1,"code")="s:MR"
+"RTN","VWEBR",80,0)
+	set RSP("json","identifier",1,"system")="s:urn:vista:dfn"
+"RTN","VWEBR",81,0)
+	set RSP("json","identifier",1,"value")="s:"_id
+"RTN","VWEBR",82,0)
+	; name (always emit a HumanName element; family/given only when present)
+"RTN","VWEBR",83,0)
+	do splitName(name,.family,.given)
+"RTN","VWEBR",84,0)
+	set RSP("json","name")="a"
+"RTN","VWEBR",85,0)
+	set RSP("json","name",1)="o"
+"RTN","VWEBR",86,0)
+	if family'="" set RSP("json","name",1,"family")="s:"_family
+"RTN","VWEBR",87,0)
+	if given'="" set RSP("json","name",1,"given")="a",RSP("json","name",1,"given",1)="s:"_given
+"RTN","VWEBR",88,0)
+	; gender / birthDate (omit when unmappable rather than emit an invalid value)
+"RTN","VWEBR",89,0)
+	set gender=$$gender(sex)
+"RTN","VWEBR",90,0)
+	if gender'="" set RSP("json","gender")="s:"_gender
+"RTN","VWEBR",91,0)
+	set bd=$$fmToIso(dob)
+"RTN","VWEBR",92,0)
+	if bd'="" set RSP("json","birthDate")="s:"_bd
+"RTN","VWEBR",93,0)
+	set RSP("status")=200
 "RTN","VWEBR",94,0)
-	; ---------- internal helpers (pure-M, dual-engine) ----------
+	quit
 "RTN","VWEBR",95,0)
 	;
 "RTN","VWEBR",96,0)
-fail(RSP,status,code,diag)	; (private) build a FHIR OperationOutcome error response.
+	; ---------- internal helpers (pure-M, dual-engine) ----------
 "RTN","VWEBR",97,0)
-	; doc: @internal
+	;
 "RTN","VWEBR",98,0)
-	kill RSP
+fail(RSP,status,code,diag)	; (private) build a FHIR OperationOutcome error response.
 "RTN","VWEBR",99,0)
-	set RSP("status")=status
+	; doc: @internal
 "RTN","VWEBR",100,0)
-	set RSP("json")="o"
+	kill RSP
 "RTN","VWEBR",101,0)
-	set RSP("json","resourceType")="s:OperationOutcome"
+	set RSP("status")=status
 "RTN","VWEBR",102,0)
-	set RSP("json","issue")="a"
+	set RSP("json")="o"
 "RTN","VWEBR",103,0)
-	set RSP("json","issue",1)="o"
+	set RSP("json","resourceType")="s:OperationOutcome"
 "RTN","VWEBR",104,0)
-	set RSP("json","issue",1,"severity")="s:error"
+	set RSP("json","issue")="a"
 "RTN","VWEBR",105,0)
-	set RSP("json","issue",1,"code")="s:"_code
+	set RSP("json","issue",1)="o"
 "RTN","VWEBR",106,0)
-	set RSP("json","issue",1,"diagnostics")="s:"_diag
+	set RSP("json","issue",1,"severity")="s:error"
 "RTN","VWEBR",107,0)
-	quit
+	set RSP("json","issue",1,"code")="s:"_code
 "RTN","VWEBR",108,0)
-	;
+	set RSP("json","issue",1,"diagnostics")="s:"_diag
 "RTN","VWEBR",109,0)
-splitName(name,family,given)	; (private) split a #2 NAME ("LAST,FIRST MIDDLE") into family + first given.
-"RTN","VWEBR",110,0)
-	; doc: @internal
-"RTN","VWEBR",111,0)
-	set family=$$trim^STDSTR($piece(name,",",1))
-"RTN","VWEBR",112,0)
-	set given=$$trim^STDSTR($piece($piece(name,",",2,999)," ",1))
-"RTN","VWEBR",113,0)
 	quit
+"RTN","VWEBR",110,0)
+	;
+"RTN","VWEBR",111,0)
+splitName(name,family,given)	; (private) split a #2 NAME ("LAST,FIRST MIDDLE") into family + first given.
+"RTN","VWEBR",112,0)
+	; doc: @internal
+"RTN","VWEBR",113,0)
+	set family=$$trim^STDSTR($piece(name,",",1))
 "RTN","VWEBR",114,0)
-	;
+	set given=$$trim^STDSTR($piece($piece(name,",",2,999)," ",1))
 "RTN","VWEBR",115,0)
-gender(sex)	; (private) map FileMan external SEX (MALE/FEMALE) to a FHIR gender code.
+	quit
 "RTN","VWEBR",116,0)
-	; doc: @internal
+	;
 "RTN","VWEBR",117,0)
-	if sex="MALE" quit "male"
+gender(sex)	; (private) map FileMan external SEX (MALE/FEMALE) to a FHIR gender code.
 "RTN","VWEBR",118,0)
-	if sex="FEMALE" quit "female"
+	; doc: @internal
 "RTN","VWEBR",119,0)
-	if sex="" quit ""
+	if sex="MALE" quit "male"
 "RTN","VWEBR",120,0)
-	quit "other"
+	if sex="FEMALE" quit "female"
 "RTN","VWEBR",121,0)
-	;
+	if sex="" quit ""
 "RTN","VWEBR",122,0)
-fmToIso(ext)	; (private) FileMan external date ("JAN 01, 1950") -> FHIR YYYY[-MM[-DD]].
+	quit "other"
 "RTN","VWEBR",123,0)
-	; doc: @internal  Tokenizes on spaces (commas dropped); finds a 4-digit year,
+	;
 "RTN","VWEBR",124,0)
-	; doc: a 3-letter month, and a 1-2 digit day in any order. Returns "" when no
+fmToIso(ext)	; (private) FileMan external date ("JAN 01, 1950") -> FHIR YYYY[-MM[-DD]].
 "RTN","VWEBR",125,0)
-	; doc: year is recoverable (so birthDate is omitted rather than invalid).
+	; doc: @internal  Tokenizes on spaces (commas dropped); finds a 4-digit year,
 "RTN","VWEBR",126,0)
-	new s,i,tok,yr,mon,day,m
+	; doc: a 3-letter month, and a 1-2 digit day in any order. Returns "" when no
 "RTN","VWEBR",127,0)
-	set s=$translate($get(ext),",",""),yr="",mon="",day=""
+	; doc: year is recoverable (so birthDate is omitted rather than invalid).
 "RTN","VWEBR",128,0)
-	for i=1:1:$length(s," ") do
+	new s,i,tok,yr,mon,day,m
 "RTN","VWEBR",129,0)
-	. set tok=$piece(s," ",i)
+	set s=$translate($get(ext),",",""),yr="",mon="",day=""
 "RTN","VWEBR",130,0)
-	. if tok="" quit
+	for i=1:1:$length(s," ") do
 "RTN","VWEBR",131,0)
-	. if (tok?4N),yr="" set yr=tok quit
+	. set tok=$piece(s," ",i)
 "RTN","VWEBR",132,0)
-	. if (tok?1.2N),day="" set day=tok quit
+	. if tok="" quit
 "RTN","VWEBR",133,0)
-	. if mon="" set m=$$monNum(tok) set:m>0 mon=m
+	. if (tok?4N),yr="" set yr=tok quit
 "RTN","VWEBR",134,0)
-	if yr="" quit ""
+	. if (tok?1.2N),day="" set day=tok quit
 "RTN","VWEBR",135,0)
-	if mon="" quit yr
+	. if mon="" set m=$$monNum(tok) set:m>0 mon=m
 "RTN","VWEBR",136,0)
-	if day="" quit yr_"-"_$$pad2(mon)
+	if yr="" quit ""
 "RTN","VWEBR",137,0)
-	quit yr_"-"_$$pad2(mon)_"-"_$$pad2(day)
+	if mon="" quit yr
 "RTN","VWEBR",138,0)
-	;
+	if day="" quit yr_"-"_$$pad2(mon)
 "RTN","VWEBR",139,0)
-monNum(tok)	; (private) 3-letter month abbreviation -> 1..12, else 0.
+	quit yr_"-"_$$pad2(mon)_"-"_$$pad2(day)
 "RTN","VWEBR",140,0)
-	; doc: @internal
-"RTN","VWEBR",141,0)
-	new p
-"RTN","VWEBR",142,0)
-	set p=$find("JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC",tok)
-"RTN","VWEBR",143,0)
-	if 'p quit 0
-"RTN","VWEBR",144,0)
-	if (p-4)#3 quit 0
-"RTN","VWEBR",145,0)
-	quit ((p-4)/3)+1
-"RTN","VWEBR",146,0)
 	;
-"RTN","VWEBR",147,0)
-pad2(n)	; (private) left-pad an integer to 2 digits.
-"RTN","VWEBR",148,0)
+"RTN","VWEBR",141,0)
+monNum(tok)	; (private) 3-letter month abbreviation -> 1..12, else 0.
+"RTN","VWEBR",142,0)
 	; doc: @internal
+"RTN","VWEBR",143,0)
+	new p
+"RTN","VWEBR",144,0)
+	set p=$find("JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC",tok)
+"RTN","VWEBR",145,0)
+	if 'p quit 0
+"RTN","VWEBR",146,0)
+	if (p-4)#3 quit 0
+"RTN","VWEBR",147,0)
+	quit ((p-4)/3)+1
+"RTN","VWEBR",148,0)
+	;
 "RTN","VWEBR",149,0)
+pad2(n)	; (private) left-pad an integer to 2 digits.
+"RTN","VWEBR",150,0)
+	; doc: @internal
+"RTN","VWEBR",151,0)
 	quit $extract("0"_n,$length("0"_n)-1,$length("0"_n))
+"RTN","VWEBT")
+0^87^0^0
+"RTN","VWEBT",1,0)
+VWEBT	; v-web — traffic-tap health/fidelity console (Phase 4 / M3, spec §8/§8.1).
+"RTN","VWEBT",2,0)
+	;
+"RTN","VWEBT",3,0)
+	; The RPC+HL7->S3 tap CAPTURES safely (VSLTAP/VSLRPCTAP), SHIPS faithfully
+"RTN","VWEBT",4,0)
+	; (VSLS3), and PROVES byte-equality by comparison (VSLTAPFC). VWEBT makes that
+"RTN","VWEBT",5,0)
+	; OBSERVABLE: a GET /traffic/health endpoint that reads the live tap
+"RTN","VWEBT",6,0)
+	; instruments and serves them as one Server-Sent-Events snapshot.
+"RTN","VWEBT",7,0)
+	;
+"RTN","VWEBT",8,0)
+	; READER, not a second source of truth. Every value here already exists in the
+"RTN","VWEBT",9,0)
+	; VSL* instruments: $$state/$$healthy/$$enabled/$$disabled/$$size/$$offWindows^
+"RTN","VWEBT",10,0)
+	; VSLTAP, $$writes/$$bytes/$$denied/$$pctl/$$ready^VSLTAPHL, and the consumer
+"RTN","VWEBT",11,0)
+	; flag via $$cfg^VSLTAP. VWEBT adds NO capture or egress logic; the operator
+"RTN","VWEBT",12,0)
+	; tap toggle (arm/off) and the fidelity-run panel are later increments.
+"RTN","VWEBT",13,0)
+	;
+"RTN","VWEBT",14,0)
+	; SSE over the current framework: STDHTTPD serializes one response with
+"RTN","VWEBT",15,0)
+	; Content-Length and closes (no server-side chunking in v0.1), so this emits a
+"RTN","VWEBT",16,0)
+	; correct text/event-stream snapshot PER REQUEST. A browser EventSource
+"RTN","VWEBT",17,0)
+	; auto-reconnects (the `retry:` field paces it), giving a live cadence without a
+"RTN","VWEBT",18,0)
+	; long-lived connection. A true single-connection multi-event push needs an
+"RTN","VWEBT",19,0)
+	; STDHTTPD chunked/streaming response — an m-stdlib (below-the-waterline) gap,
+"RTN","VWEBT",20,0)
+	; out of scope for this v-web phase.
+"RTN","VWEBT",21,0)
+	;
+"RTN","VWEBT",22,0)
+	; Layer: v. Consumes STDHTTPD/STDJSON (m) + VSLTAP/VSLTAPHL (v, v->v). No
+"RTN","VWEBT",23,0)
+	; direct VistA call (no ^XPAR/^DPT/Kernel), so the ICR registry stays empty.
+"RTN","VWEBT",24,0)
+	; Auth: /traffic/health is NOT an open path, so VWEBA's middleware gates it
+"RTN","VWEBT",25,0)
+	; (operator-facing metrics, not anonymous liveness — that stays /healthz).
+"RTN","VWEBT",26,0)
+	;
+"RTN","VWEBT",27,0)
+	; Public:
+"RTN","VWEBT",28,0)
+	;   routes(.SRV)         — register GET /traffic/health -> health^VWEBT
+"RTN","VWEBT",29,0)
+	;   snapshot(.J)         — build the tap-health snapshot (a typed-node object)
+"RTN","VWEBT",30,0)
+	;   health(.REQ,.RSP)    — the GET /traffic/health SSE handler
+"RTN","VWEBT",31,0)
+	;
+"RTN","VWEBT",32,0)
+	quit
+"RTN","VWEBT",33,0)
+	;
+"RTN","VWEBT",34,0)
+routes(SRV)	; Register the console route: GET /traffic/health.
+"RTN","VWEBT",35,0)
+	; doc: @param SRV  array  by-ref route table (STDHTTPD), populated by side-effect
+"RTN","VWEBT",36,0)
+	; Called from routes^VWEBR (which registers the VWEBA auth middleware first, so
+"RTN","VWEBT",37,0)
+	; this route is protected). health stays auth-agnostic (identity is middleware).
+"RTN","VWEBT",38,0)
+	do route^STDHTTPD(.SRV,"GET","/traffic/health","health^VWEBT")
+"RTN","VWEBT",39,0)
+	quit
+"RTN","VWEBT",40,0)
+	;
+"RTN","VWEBT",41,0)
+snapshot(J)	; Build the tap-health snapshot as a typed-node JSON object (spec §8/§8.1).
+"RTN","VWEBT",42,0)
+	; doc: @param J  array  by-ref STDJSON typed-node tree (populated by side-effect)
+"RTN","VWEBT",43,0)
+	; A pure reader: it mirrors the live VSLTAP/VSLTAPHL instruments and runs the
+"RTN","VWEBT",44,0)
+	; (network-free) standby readiness probe. "n:" = JSON number, "s:" = string.
+"RTN","VWEBT",45,0)
+	new tmp
+"RTN","VWEBT",46,0)
+	kill J
+"RTN","VWEBT",47,0)
+	set J="o"
+"RTN","VWEBT",48,0)
+	; --- standby state machine + liveness (§8.1) ---
+"RTN","VWEBT",49,0)
+	set J("state")="s:"_$$state^VSLTAP
+"RTN","VWEBT",50,0)
+	set J("healthy")="n:"_$$healthy^VSLTAP
+"RTN","VWEBT",51,0)
+	set J("ready")="n:"_$$ready^VSLTAPHL
+"RTN","VWEBT",52,0)
+	; --- the capture gate (armed AND not auto-disabled AND (consumer OR alwayson)) ---
+"RTN","VWEBT",53,0)
+	set J("enabled")="n:"_$$enabled^VSLTAP
+"RTN","VWEBT",54,0)
+	set J("consumer")="n:"_(+$$cfg^VSLTAP("consumer",0))
+"RTN","VWEBT",55,0)
+	set J("alwayson")="n:"_(+$$cfg^VSLTAP("alwayson",0))
+"RTN","VWEBT",56,0)
+	; --- auto-failover (reason "" when armed/clean) + the explicit off-window log ---
+"RTN","VWEBT",57,0)
+	set J("disabled")="s:"_$$disabled^VSLTAP
+"RTN","VWEBT",58,0)
+	set J("offwindows")="n:"_$$offWindows^VSLTAP(.tmp)
+"RTN","VWEBT",59,0)
+	; --- the rolling ring / spool depth ---
+"RTN","VWEBT",60,0)
+	set J("ring")="n:"_$$size^VSLTAP
+"RTN","VWEBT",61,0)
+	set J("head")="n:"_$$head^VSLTAP
+"RTN","VWEBT",62,0)
+	set J("tail")="n:"_$$tail^VSLTAP
+"RTN","VWEBT",63,0)
+	; --- throughput counters + the tapped-latency percentiles (the A/B panel) ---
+"RTN","VWEBT",64,0)
+	set J("writes")="n:"_$$writes^VSLTAPHL
+"RTN","VWEBT",65,0)
+	set J("bytes")="n:"_$$bytes^VSLTAPHL
+"RTN","VWEBT",66,0)
+	set J("denied")="n:"_$$denied^VSLTAPHL
+"RTN","VWEBT",67,0)
+	set J("p50")="n:"_$$pctl^VSLTAPHL(50)
+"RTN","VWEBT",68,0)
+	set J("p95")="n:"_$$pctl^VSLTAPHL(95)
+"RTN","VWEBT",69,0)
+	set J("p99")="n:"_$$pctl^VSLTAPHL(99)
+"RTN","VWEBT",70,0)
+	quit
+"RTN","VWEBT",71,0)
+	;
+"RTN","VWEBT",72,0)
+health(REQ,RSP)	; GET /traffic/health -> one SSE-framed snapshot event (text/event-stream).
+"RTN","VWEBT",73,0)
+	; doc: @param REQ  array  by-ref parsed request (unused; the snapshot is global)
+"RTN","VWEBT",74,0)
+	; doc: @param RSP  array  by-ref response: status + raw body + event-stream hdrs
+"RTN","VWEBT",75,0)
+	; Sets RSP("body") directly (not RSP("json")) so the Content-Type stays
+"RTN","VWEBT",76,0)
+	; text/event-stream; STDHTTPD's serializeRsp honours a caller-set Content-Type.
+"RTN","VWEBT",77,0)
+	new J,json,lf
+"RTN","VWEBT",78,0)
+	do snapshot(.J)
+"RTN","VWEBT",79,0)
+	set json=$$encode^STDJSON(.J)
+"RTN","VWEBT",80,0)
+	set lf=$char(10)
+"RTN","VWEBT",81,0)
+	kill RSP
+"RTN","VWEBT",82,0)
+	set RSP("status")=200
+"RTN","VWEBT",83,0)
+	set RSP("hdr","Content-Type")="text/event-stream"
+"RTN","VWEBT",84,0)
+	set RSP("hdr","Cache-Control")="no-cache"
+"RTN","VWEBT",85,0)
+	; one `health` event; `retry` paces the EventSource reconnect (the live cadence)
+"RTN","VWEBT",86,0)
+	set RSP("body")="retry: 5000"_lf_"event: health"_lf_"data: "_json_lf_lf
+"RTN","VWEBT",87,0)
+	quit
 "ORD",1,8989.51)
 8989.51;1;1;;;;;;;
 "ORD",1,8989.51,0)
