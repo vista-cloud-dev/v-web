@@ -35,6 +35,8 @@ VWEBATST	; v-web — VWEBA (auth middleware: bearer/JWT -> DUZ/#200) suite.
 	do tExpiredToken401(.pass,.fail)
 	do tUnconfiguredKeyFailsClosed(.pass,.fail)
 	do t401OverSocket(.pass,.fail)
+	do tTrafficQueryToken(.pass,.fail)
+	do tQueryTokenScopedToTraffic(.pass,.fail)
 	do tByIenLive(.pass,.fail)
 	do tValidTokenBindsDuzLive(.pass,.fail)
 	do tUnprovisioned403Live(.pass,.fail)
@@ -202,6 +204,39 @@ t401OverSocket(pass,fail)	;@TEST "the 401 travels over a real socket: no token o
 	set n=$$parseRsp^STDHTTPMSG(resp,.R)
 	do eq^STDASSERT(.pass,.fail,$get(R("status")),401,"the unauthenticated request is 401 on the wire")
 	set n=$$close^STDNET(cli),n=$$close^VWEBIO(srv)
+	quit
+	;
+	; ---------- bare-engine: the SSE query-token fallback (the browser EventSource) ----------
+	;
+tTrafficQueryToken(pass,fail)	;@TEST "an EventSource on /traffic/health authenticates via ?access_token (no Authorization header)"
+	new SRV,REQ,RSP,st
+	if $$hasFileMan() do true^STDASSERT(.pass,.fail,1,"bare-engine security guarantee - live behavior covered by the binding tests") quit
+	if '$$hasCrypto() do true^STDASSERT(.pass,.fail,1,"STDCRYPTO callout absent here - token signing/verify proven where available") quit
+	do setcfg("VWEB AUTH JWT KEY","testsecret")
+	do routes^VWEBR(.SRV)
+	; the browser EventSource cannot set Authorization, so the SPA passes the token
+	; in the query string; VWEBA honours it ONLY for the /traffic/* console paths.
+	; (health^VWEBT returns 200 regardless of tap state, so a 200 proves auth passed.)
+	set REQ("method")="GET",REQ("path")="/traffic/health"
+	set REQ("query","access_token")=$$mkjwt("testsecret",1,9999999999)
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),200,"a valid query-string token authenticates the console (200, not 401)")
+	do clearcfg()
+	quit
+	;
+tQueryTokenScopedToTraffic(pass,fail)	;@TEST "the ?access_token fallback is scoped to /traffic/* — it does NOT authenticate other routes"
+	new SRV,REQ,RSP,st
+	if $$hasFileMan() do true^STDASSERT(.pass,.fail,1,"bare-engine security guarantee - live behavior covered by the binding tests") quit
+	if '$$hasCrypto() do true^STDASSERT(.pass,.fail,1,"STDCRYPTO callout absent here - token signing/verify proven where available") quit
+	do setcfg("VWEB AUTH JWT KEY","testsecret")
+	do routes^VWEBR(.SRV)
+	; same valid token, but on a non-console route: the query fallback must be ignored
+	; (token-in-URL is logged/cached; we accept that risk ONLY for the console paths).
+	set REQ("method")="GET",REQ("path")="/Patient/abc"
+	set REQ("query","access_token")=$$mkjwt("testsecret",1,9999999999)
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),401,"a query token on a non-/traffic route is ignored -> 401")
+	do clearcfg()
 	quit
 	;
 	; ---------- live VistA: the principal binding ----------

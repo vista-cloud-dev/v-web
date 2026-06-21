@@ -4,7 +4,7 @@
   "patch": "3",
   "envCheck": "VWEBENV",
   "components": {
-    "routines": ["VWEBA", "VWEBCFG", "VWEBENV", "VWEBIO", "VWEBL", "VWEBR"],
+    "routines": ["VWEBA", "VWEBCFG", "VWEBENV", "VWEBIO", "VWEBL", "VWEBR", "VWEBT"],
     "options": ["VWEB LISTENER"],
     "parameterDefinitions": [
       {
