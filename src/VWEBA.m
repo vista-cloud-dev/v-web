@@ -37,6 +37,7 @@ VWEBA	; v-web — auth middleware: a Bearer credential -> a VistA principal (DUZ
 	;   register(.SRV)        — register authn^VWEBA as a middleware on SRV
 	;   authn(.REQ,.RSP,.CTX) — the middleware (STDHTTPD 3-arg signature)
 	;   isOpen(path)          — 1 iff `path` is an open (no-auth) path
+	;   traffic(path)         — 1 iff `path` is a /traffic console path (query-token scope)
 	;   bearer(.REQ)          — extract the Bearer token from REQ, or ""
 	;   bind(subject,method)  — map an authenticated subject to a #200 IEN, or ""
 	;   lastError()           — the last auth-failure reason
@@ -61,6 +62,10 @@ authn(REQ,RSP,CTX)	; The auth middleware: authenticate + bind, or short-circuit 
 	set subject=""
 	if $$isOpen($get(REQ("path"))) quit
 	set tok=$$bearer(.REQ)
+	; SSE fallback: the browser EventSource cannot set an Authorization header, so
+	; the traffic console passes its token as ?access_token=. Honour it ONLY for the
+	; /traffic/* paths (token-in-URL is logged/cached — accept that risk just there).
+	if tok="",$$traffic($get(REQ("path"))) set tok=$get(REQ("query","access_token"))
 	if tok="" do deny401(.RSP,.CTX,"missing or malformed Bearer credential",0) quit
 	if '$$validate(tok,.subject) do deny401(.RSP,.CTX,$$lastError(),1) quit
 	set REQ("auth","subject")=subject
@@ -76,6 +81,14 @@ isOpen(path)	; 1 iff `path` is an open (no-authentication) path.
 	; doc: @returns     bool    1 for the liveness probe (/healthz), else 0
 	; The allow-list is intentionally tiny: liveness must answer without a token.
 	quit $get(path)="/healthz"
+	;
+traffic(path)	; 1 iff `path` is a traffic-console path (the SSE query-token fallback scope).
+	; doc: @param path  string  the request path
+	; doc: @returns     bool    1 for /traffic and /traffic/* (still token-gated, just
+	; doc:                      via the query string), else 0. NOT an open path.
+	new p
+	set p=$get(path)
+	quit (p="/traffic")!(p?1"/traffic/".E)
 	;
 bearer(REQ)	; Extract the token from an "Authorization: Bearer <token>" header, or "".
 	; doc: @param REQ  array  by-ref parsed request (REQ("hdr","authorization"))

@@ -24,6 +24,17 @@ VWEBTTST	; v-web — VWEBT (traffic-tap health/fidelity console) suite.
 	do tHealthDataParses(.pass,.fail)
 	do tHealthIsProtected(.pass,.fail)
 	do tHealthOverSocket(.pass,.fail)
+	do tTapRegistered(.pass,.fail)
+	do tTapRequiresAuth(.pass,.fail)
+	do tTapArmsAndOffs(.pass,.fail)
+	do tTapViaQueryOnPost(.pass,.fail)
+	do tTapRearmCycle(.pass,.fail)
+	do tTapRejectsBadAction(.pass,.fail)
+	do tSnapshotFidelityPending(.pass,.fail)
+	do tSnapshotFidelityPresent(.pass,.fail)
+	do tConsoleRegistered(.pass,.fail)
+	do tConsoleIsHtml(.pass,.fail)
+	do tConsoleProtected(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -166,4 +177,145 @@ tHealthOverSocket(pass,fail)	;@TEST "the /traffic/health route is served over a 
 	; parseRsp preserves header-name case, so use the case-insensitive accessor
 	do eq^STDASSERT(.pass,.fail,$$hdr^STDHTTPMSG(.R,"content-type"),"text/event-stream","Content-Type text/event-stream on the wire")
 	set n=$$close^STDNET(cli),n=$$close^VWEBIO(srv)
+	quit
+	;
+	; ---------- the operator tap toggle (POST /traffic/tap) ----------
+	;
+tTapRegistered(pass,fail)	;@TEST "routes^VWEBT registers POST /traffic/tap -> tap^VWEBT [both engines]"
+	new SRV,route,params,st
+	do routes^VWEBT(.SRV)
+	set st=$$match^STDHTTPD(.SRV,"POST","/traffic/tap",.route,.params)
+	do eq^STDASSERT(.pass,.fail,st,200,"POST /traffic/tap matches a route")
+	do eq^STDASSERT(.pass,.fail,$get(route("handler")),"tap^VWEBT","dispatches to tap^VWEBT")
+	quit
+	;
+tTapRequiresAuth(pass,fail)	;@TEST "the operator toggle is auth-protected: unauthenticated POST /traffic/tap -> 401 [both engines]"
+	new SRV,REQ,RSP,st
+	do eq^STDASSERT(.pass,.fail,$$isOpen^VWEBA("/traffic/tap"),0,"/traffic/tap is not in the open allow-list")
+	do routes^VWEBR(.SRV)
+	set REQ("method")="POST",REQ("path")="/traffic/tap",REQ("query","action")="arm"
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),401,"no Bearer credential -> 401 (the toggle never runs)")
+	quit
+	;
+tTapArmsAndOffs(pass,fail)	;@TEST "POST /traffic/tap action=arm|off flips the kill-switch and returns the fresh snapshot [both engines]"
+	new SRV,REQ,RSP,st
+	do reset()
+	do off^VSLTAP,heartbeat^VSLTAP
+	do routesNoAuth(.SRV)
+	; arm
+	set REQ("method")="POST",REQ("path")="/traffic/tap",REQ("query","action")="arm"
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),200,"arm returns 200")
+	do eq^STDASSERT(.pass,.fail,$$cfg^VSLTAP("mode","off"),"armed","arm flips the operator kill-switch on")
+	do eq^STDASSERT(.pass,.fail,$get(RSP("json","state")),"s:ARMED-IDLE","the fresh snapshot reflects the armed state")
+	; off
+	kill REQ,RSP
+	set REQ("method")="POST",REQ("path")="/traffic/tap",REQ("query","action")="off"
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$$state^VSLTAP,"OFF","off returns the tap to OFF")
+	do eq^STDASSERT(.pass,.fail,$get(RSP("json","state")),"s:OFF","the snapshot shows OFF at once")
+	quit
+	;
+tTapViaQueryOnPost(pass,fail)	;@TEST "POST /traffic/tap reads the action from the query string (?action=off) [both engines]"
+	new SRV,REQ,RSP,st
+	do reset()
+	do arm^VSLTAP,heartbeat^VSLTAP
+	do routesNoAuth(.SRV)
+	; the SPA POSTs /traffic/tap?action=off — a query param (NOT a JSON body: a
+	; single-member JSON object trips an STDJSON-on-IRIS parse bug, so the toggle
+	; takes its action from the query string, which is dual-engine clean).
+	set REQ("method")="POST",REQ("path")="/traffic/tap",REQ("query","action")="off"
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),200,"a query-string action returns 200")
+	do eq^STDASSERT(.pass,.fail,$$cfg^VSLTAP("mode","off"),"off","the query-string action turned the tap off")
+	quit
+	;
+tTapRearmCycle(pass,fail)	;@TEST "POST /traffic/tap action=rearm clears a clean auto-disable (OFF->armed->auto-disable->re-arm) [both engines]"
+	new SRV,REQ,RSP,st
+	do reset()
+	do arm^VSLTAP,setConsumer^VSLTAP(1),heartbeat^VSLTAP
+	; simulate an auto-failover trip (the watchdog's job, not the toggle's)
+	do disable^VSLTAP("latency")
+	do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP,"latency","precondition: the tap auto-disabled on a latency trip")
+	do routesNoAuth(.SRV)
+	set REQ("method")="POST",REQ("path")="/traffic/tap",REQ("query","action")="rearm"
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),200,"rearm returns 200")
+	do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP,"","rearm clears the auto-failover reason (operator cleared the cool-down)")
+	do eq^STDASSERT(.pass,.fail,$get(RSP("json","disabled")),"s:","the snapshot shows the reason cleared")
+	quit
+	;
+tTapRejectsBadAction(pass,fail)	;@TEST "POST /traffic/tap with an unknown action -> 400 (no state change) [both engines]"
+	new SRV,REQ,RSP,st
+	do reset()
+	do off^VSLTAP
+	do routesNoAuth(.SRV)
+	set REQ("method")="POST",REQ("path")="/traffic/tap",REQ("query","action")="bogus"
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),400,"an unrecognised action is rejected with 400")
+	do eq^STDASSERT(.pass,.fail,$$cfg^VSLTAP("mode","off"),"off","a bad action leaves the kill-switch untouched")
+	quit
+	;
+	; ---------- the fidelity panel data (snapshot reads VSLTAPFC's last run) ----------
+	;
+tSnapshotFidelityPending(pass,fail)	;@TEST "snapshot: fidelity reports 'pending' when no fidelity run has been persisted [both engines]"
+	new J
+	do reset()
+	do snapshot^VWEBT(.J)
+	do eq^STDASSERT(.pass,.fail,$get(J("fidelity")),"o","fidelity is reported as an object")
+	do eq^STDASSERT(.pass,.fail,$get(J("fidelity","status")),"s:pending","no persisted run -> last-run pending (honest, no fabricated %)")
+	quit
+	;
+tSnapshotFidelityPresent(pass,fail)	;@TEST "snapshot: fidelity surfaces match %/counts from the persisted VSLTAPFC run [both engines]"
+	new J,res
+	do reset()
+	; persist a clean run (8 matched, 0 problems) via the v-stdlib primitive
+	set res("matched")=8,res("mismatch")=0,res("missing")=0,res("extra")=0
+	do persist^VSLTAPFC(.res,"65800,43200")
+	do snapshot^VWEBT(.J)
+	do eq^STDASSERT(.pass,.fail,$get(J("fidelity","status")),"s:ok","a clean run shows ok")
+	do eq^STDASSERT(.pass,.fail,$get(J("fidelity","matched")),"n:8","the matched count is surfaced")
+	do eq^STDASSERT(.pass,.fail,$get(J("fidelity","pct")),"n:100","8/8 matched -> 100% fidelity")
+	do eq^STDASSERT(.pass,.fail,$get(J("fidelity","ts")),"s:65800,43200","the last-run timestamp is surfaced")
+	; a drifted run lowers the % and flags a mismatch
+	kill J
+	set res("matched")=6,res("mismatch")=2,res("missing")=0,res("extra")=0
+	do persist^VSLTAPFC(.res,"65800,43201")
+	do snapshot^VWEBT(.J)
+	do eq^STDASSERT(.pass,.fail,$get(J("fidelity","status")),"s:mismatch","a run with mismatches shows mismatch")
+	do eq^STDASSERT(.pass,.fail,$get(J("fidelity","pct")),"n:75","6 of 8 matched -> 75%")
+	quit
+	;
+	; ---------- the operator SPA (GET /traffic -> a self-contained HTML console) ----------
+	;
+tConsoleRegistered(pass,fail)	;@TEST "routes^VWEBT registers GET /traffic -> console^VWEBT [both engines]"
+	new SRV,route,params,st
+	do routes^VWEBT(.SRV)
+	set st=$$match^STDHTTPD(.SRV,"GET","/traffic",.route,.params)
+	do eq^STDASSERT(.pass,.fail,st,200,"GET /traffic matches a route")
+	do eq^STDASSERT(.pass,.fail,$get(route("handler")),"console^VWEBT","dispatches to console^VWEBT")
+	quit
+	;
+tConsoleIsHtml(pass,fail)	;@TEST "GET /traffic -> 200 text/html: a self-contained page wiring EventSource + the toggle [both engines]"
+	new SRV,REQ,RSP,st,body
+	do routesNoAuth(.SRV)
+	set REQ("method")="GET",REQ("path")="/traffic"
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),200,"status 200")
+	do true^STDASSERT(.pass,.fail,$get(RSP("hdr","Content-Type"))["text/html","Content-Type is text/html")
+	set body=$get(RSP("body"))
+	do true^STDASSERT(.pass,.fail,body["EventSource","the page opens an EventSource (live cadence)")
+	do true^STDASSERT(.pass,.fail,body["/traffic/health","the SSE stream is the health endpoint")
+	do true^STDASSERT(.pass,.fail,body["/traffic/tap","the page wires the operator toggle")
+	do true^STDASSERT(.pass,.fail,body["fidelity","the fidelity panel is present")
+	quit
+	;
+tConsoleProtected(pass,fail)	;@TEST "the console page is auth-protected: unauthenticated GET /traffic -> 401 [both engines]"
+	new SRV,REQ,RSP,st
+	do eq^STDASSERT(.pass,.fail,$$isOpen^VWEBA("/traffic"),0,"/traffic is not in the open allow-list")
+	do routes^VWEBR(.SRV)
+	set REQ("method")="GET",REQ("path")="/traffic"
+	set st=$$dispatch^STDHTTPD(.SRV,.REQ,.RSP)
+	do eq^STDASSERT(.pass,.fail,$get(RSP("status")),401,"no Bearer credential -> 401")
 	quit

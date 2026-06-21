@@ -17,6 +17,27 @@ the `docs` repo `docs/vsl-msl/vsl-implementation-plan.md` +
 | **M6.5** | **`VWEBA` auth (bearer/introspection → DUZ/#200)** | **🟢 DONE 2026-06-17** |
 | **M6.6** | **the §9 smoke test (full vertical, both engines, KIDS lifecycle)** | **🟢 DONE 2026-06-18 — M6 CAPSTONE CLOSED** |
 
+## Phase 4 / M3 — the RPC+HL7→S3 tap operator console (`VWEBT`)
+
+Shared plan: `docs` repo `docs/proposals/rpc-traffic-s3-streaming-implementation-plan.md` §8 (master row 4).
+
+| Stage | Deliverable | Status |
+|---|---|---|
+| 4.1 (incr 1) | `VWEBT` snapshot + `GET /traffic/health` SSE (read-only) | 🟢 DONE 2026-06-21 |
+| 4.3 | operator tap toggle `POST /traffic/tap` (arm/off/rearm, VWEBA-gated) | 🟢 DONE 2026-06-21 |
+| 4.2 (fidelity) | `VSLTAPFC persist`/`$$lastFidelity` (v-stdlib leaf) → `snapshot` `fidelity` member | 🟢 DONE 2026-06-21 |
+| 4.2 (SPA) | `GET /traffic` self-contained HTML console (4 panels + toggle, EventSource) | 🟢 DONE 2026-06-21 |
+| — | SSE-auth: `?access_token=` query fallback scoped to `/traffic/*` (VWEBA) | 🟢 DONE 2026-06-21 |
+| **M3 exit gate** | **console shows live A/B-overlap + fidelity + standby; toggle works; dual-engine green** | **🟢 MET 2026-06-21** |
+
+Branch `phase4-traffic-console` (unmerged). Full v-web suite **164/0 dual-engine**;
+all engine-free gates green; m-reviewer no blockers. v-stdlib leaf on branch
+`phase4-fidelity-persist`. Detail: `docs/memory/phase4-traffic-console.md`. **OWED to
+m-stdlib:** the STDJSON-on-IRIS `$ECODE`-poisoning parse bug (worked around in
+`fidelity()` via `set $ecode=""`; durable fix is `parse^STDJSON` clearing `$ECODE` at
+entry). **Next:** Phase 5 / M4 (GA) — merge branches, KIDS install/back-out, real-S3 +
+passive mirror, fleet rollout.
+
 ## M6.4 — DONE (2026-06-17)
 
 **Branch `m6.4-fhir-patient`** (off `main`). The first real route mounts on the
