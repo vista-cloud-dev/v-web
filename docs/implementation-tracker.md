@@ -19,7 +19,7 @@ the `docs` repo `docs/vsl-msl/vsl-implementation-plan.md` +
 
 ## Phase 4 / M3 — the RPC+HL7→S3 tap operator console (`VWEBT`)
 
-Shared plan: `docs` repo `docs/proposals/rpc-traffic-s3-streaming-implementation-plan.md` §8 (master row 4).
+Shared plan: `docs` repo `docs/proposals/implemented/rpc-traffic-s3-streaming-implementation-plan.md` §8 (master row 4).
 
 | Stage | Deliverable | Status |
 |---|---|---|
