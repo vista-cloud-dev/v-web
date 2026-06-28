@@ -159,7 +159,7 @@ vertical is now fully dual-engine.** GAP 1 ✅ / GAP 2 ✅.
 
 `VWEBR` router + the minimal FHIR R4 Patient handler reading #2 via VSLFS;
 `routes^VWEBR` owns the table. Bare 38/38 both engines, vehu 35/35 (live #2
-read), foia 27/27. KIDS `VWEB*1.0*2`. See `docs/memory/m6.4-vweb-fhir-patient.md`.
+read), foia 27/27. KIDS `VWEB*1.0*2`. See `docs/memory/v-web-durable-gotchas.md`.
 
 ## M6.5 — VWEBA auth middleware → DUZ/#200 (DONE 2026-06-17, branch `m6.5-auth`)
 
@@ -189,7 +189,7 @@ providers behind it.
 
 The capstone close. **Composition + verification, no production surface**: a new
 suite **`tests/VWEBE2ETST.m`** (6 tests) drives the whole VWEB*/VSL*/STD* vertical
-through one front door over a REAL socket. See `docs/memory/m6.6-vweb-smoke.md`.
+through one front door over a REAL socket. See `docs/memory/v-web-durable-gotchas.md`.
 
 Shipped (all in `tests/` — not part of the KIDS build; src routines unchanged):
 - **The capstone leg that was never tested e2e:** an **authenticated 200 FHIR
