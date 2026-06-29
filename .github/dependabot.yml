@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    ignore:
+      # Internal reusable workflow, pinned at @main and managed by hand;
+      # Dependabot can't reach the .github repo to check it.
+      - dependency-name: "vista-cloud-dev/.github*"
